@@ -1,0 +1,28 @@
+Procesy:
+
+1. Zerowanie
+- wylaczenie silnika,
+- wlaczenie i powolny naciag do okreslonej sily na tensometrze (40kg?)
+- ustawienie pozycji na "0".
+
+2. Naciag wlasciwy
+- ustawienie polozenia na 0+20cm,
+- stop, wylacz silnik,
+- zapiecie gumy,
+- po nacisnieciu guzika pomiar dlugosci gumy, czyli naciag do okreslonej (malej) wartosci na tensometrze,
+- pomiar na naciagu 1m.
+
+3. Naciag na 36kg #1
+- ustawienie polozenia na 0+20cm,
+- stop, wylacz silnik,
+- zapiecie gumy,
+- po nacisniecu guzika naciag do okreslonej (36kg) wartosci na tensometrze,
+- stop,
+- trzymanie naciagu przez 2min,
+- powrot do "0".
+
+4. Naciag na 36kg #2
+- naciag,
+- koniec gdy brak znaczacych zmian.
+
+

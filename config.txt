@@ -1,0 +1,7 @@
+force.max=10000
+force.min=50
+length.loosen=200
+length.20cm=10000
+length.100cm=50000
+length.full=60000
+direction=1

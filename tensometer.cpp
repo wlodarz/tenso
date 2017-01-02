@@ -4,8 +4,10 @@
 #include <QDebug>
 #include "tensometer.hpp"
 
-int CCONV AttachHandler(CPhidgetHandle phid, void *userptr)
+static int CCONV AttachHandler(CPhidgetHandle phid, void *userptr)
 {
+	userptr = userptr;
+
         CPhidgetBridgeHandle bridge = (CPhidgetBridgeHandle)phid;
 
         CPhidgetBridge_setEnabled(bridge, 0, PTRUE);
@@ -23,28 +25,40 @@ int CCONV AttachHandler(CPhidgetHandle phid, void *userptr)
         return 0;
 }
 
-int CCONV DetachHandler(CPhidgetHandle phid, void *userptr)
+static int CCONV DetachHandler(CPhidgetHandle phid, void *userptr)
 {
+	phid = phid;
+	userptr = userptr;
+
         printf("Detach handler ran!\n");
         return 0;
 }
 
-int CCONV ErrorHandler(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *errorStr)
+static int CCONV ErrorHandler(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *errorStr)
 {
+	phid = phid;
+	userptr = userptr;
+	ErrorCode = ErrorCode;
         printf("Error event: %s\n",errorStr);
         return 0;
 }
 
 #define FREQS_SIZE 20
-double bridges[FREQS_SIZE] = {0};
-int CCONV data(CPhidgetBridgeHandle phid, void *userPtr, int index, double val)
+//static double bridges[FREQS_SIZE] = {0};
+static int CCONV data(CPhidgetBridgeHandle phid, void *userPtr, int index, double val)
 {
-        CPhidgetBridgeHandle bridge = (CPhidgetBridgeHandle)phid;
-        double f, ms;
-        int i;
+        //CPhidgetBridgeHandle bridge = (CPhidgetBridgeHandle)phid;
+        //double f;
+	//double ms;
+        //int i;
         double K = 160000.0;
         double offset = 0.002325;
         double weight;
+
+	phid = phid;
+	userPtr = userPtr;
+	index = index;
+
 	Tensometer *tenso = (Tensometer *)userPtr;
 
         //qDebug() << "Data Event (" << index << " " << val;
@@ -52,7 +66,7 @@ int CCONV data(CPhidgetBridgeHandle phid, void *userPtr, int index, double val)
         weight = K * ((val / 5.0) - offset);
         //qDebug() << "Weight " << weight << "g";
 
-	tenso->setLastValue((int)weight);
+	tenso->setForceValue((int)weight);
 
         return 0;
 }
@@ -62,15 +76,13 @@ Tensometer::Tensometer()
 {
 }
 
-int Tensometer::Init()
+int Tensometer::init()
 {
-#ifdef TEST
-#else
 	const char *err;
 	int result;
 	CPhidgetBridgeHandle bridge;
 
-	m_lastValue = 0;
+	m_forceValue = 0;
 
 	CPhidgetBridge_create(&bridge);
 
@@ -83,21 +95,13 @@ int Tensometer::Init()
 	CPhidget_open((CPhidgetHandle)bridge, -1);
 
 	//Wait for 10 seconds, otherwise exit
-	if(result = CPhidget_waitForAttachment((CPhidgetHandle)bridge, 10000)) {
+	if((result = CPhidget_waitForAttachment((CPhidgetHandle)bridge, 1000))!=0) {
         	CPhidget_getErrorDescription(result, &err);
 		qDebug() << "Problem waiting for attachment:" << err;
 		return -1;
 	}
-#endif
 	return 0;
 }
 
 Tensometer::~Tensometer() {}
-
-#if 0
-int Tensometer::getForceValue()
-{
-	return rand() % 120;
-}
-#endif
 

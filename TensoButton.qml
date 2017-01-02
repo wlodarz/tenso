@@ -10,6 +10,7 @@ Rectangle {
         radius: 10
 	color: activated ? "red" : "white"
 	property string button_label
+	property string button_label_default
         Text {
 		font.pointSize: 16
 		anchors.centerIn: parent

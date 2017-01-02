@@ -3,24 +3,20 @@
 
 #include <stdlib.h>
 
-//#define TEST
-
 class Tensometer {
 public:
 	Tensometer();
 	~Tensometer();
 
-#ifdef TEST
-	int getForceValue() { return rand() % 300; }
-#else
-	int getForceValue() { return m_lastValue; }
-#endif
+	int init();
 	int waitForHardware();
-	int Init();
-	void setLastValue(int val) { m_lastValue = val >= 0 ? val : 0; }
+
+	/* force values in grams */
+	int getForceValue() { return m_forceValue; }
+	void setForceValue(int val) { m_forceValue = val >= 0 ? val : 0; }
 
 private:
-	int m_lastValue;
+	int m_forceValue;
 };
 
 

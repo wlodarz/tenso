@@ -6,6 +6,7 @@
 
 #include "tensometer.hpp"
 #include "stepperengine.hpp"
+#include "tensoconfig.hpp"
 
 class TensoSensor;
 
@@ -14,18 +15,26 @@ class TensoThread : public QThread
   Q_OBJECT
 
 public:
-  void setTensoSensor(TensoSensor *sensor) { m_sensor = sensor; }
+  int loadConfig(QString);
+  int configure();
+  int init(TensoSensor *);
 
 private:
   void run();
 
+  void testFunction();
+
 public slots:
-  void onMeasureTimeout();
+  void onTimeout();
+  void onControlTimeout();
 
 private:
+  TensoConfig *m_config;
   TensoSensor *m_sensor;
   Tensometer *m_tensometer;
   StepperEngine *m_stepperengine;
+
+  int test_counter;
 };
 
 #endif // __TENSOTHREAD_H__
