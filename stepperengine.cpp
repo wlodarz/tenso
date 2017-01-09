@@ -77,6 +77,7 @@ int StepperEngine::init()
 
 	m_position = 0;
 	m_connected = 0;
+	m_maxspeeddiv = 100000;
 
 	CPhidgetStepper_create(&m_stepper);
 
@@ -98,8 +99,9 @@ int StepperEngine::init()
 	CPhidgetStepper_getAccelerationMax(m_stepper, 0, &maxAccel);
 	CPhidgetStepper_getVelocityMax(m_stepper, 0, &maxVel);
 
-	CPhidgetStepper_setAcceleration(m_stepper, 0, minAccel*100);
-        CPhidgetStepper_setVelocityLimit(m_stepper, 0, maxVel/10);
+	//CPhidgetStepper_setAcceleration(m_stepper, 0, minAccel*100);
+	CPhidgetStepper_setAcceleration(m_stepper, 0, maxAccel/10);
+        CPhidgetStepper_setVelocityLimit(m_stepper, 0, maxVel/m_maxspeeddiv);
 
 	CPhidgetStepper_setCurrentPosition(m_stepper, 0, 0);
 
@@ -108,10 +110,11 @@ int StepperEngine::init()
 	double currentMax, currentLimit;
 	CPhidgetStepper_getCurrentMax(m_stepper, 0, &currentMax);
 	CPhidgetStepper_getCurrentLimit(m_stepper, 0, &currentLimit);
-	currentLimit = 3.9;
+	currentLimit = 3.0;
 	CPhidgetStepper_setCurrentLimit(m_stepper, 0, currentLimit);
 	qDebug() << "CURRENT MAX " << currentMax;
 	qDebug() << "CURRENT LIMIT " << currentLimit;
+	qDebug() << "MAX Velocity " << maxVel;
 
 
 #if 0
@@ -129,9 +132,13 @@ int StepperEngine::init()
 
 void StepperEngine::start()
 {
-	qDebug() << "StepperEngine::start()";
+	int speed_limit = maxVel / m_maxspeeddiv;
+	qDebug() << "StepperEngine::start() limit " << speed_limit;
+	qDebug() << "StepperEngine::start() maxVel " << maxVel;
+	qDebug() << "StepperEngine::start() m_maxspeeddiv " << m_maxspeeddiv;
 
 	if (checkConnected() < 0) return;
+        CPhidgetStepper_setVelocityLimit(m_stepper, 0, speed_limit);
 
         //CPhidgetStepper_setEngaged(m_stepper, 0, 1);
 }
@@ -144,7 +151,7 @@ void StepperEngine::stop()
 
         CPhidgetStepper_setVelocityLimit(m_stepper, 0, 0);
 	setTargetPosition(getCurrentPosition());
-        CPhidgetStepper_setVelocityLimit(m_stepper, 0, maxVel/10);
+        CPhidgetStepper_setVelocityLimit(m_stepper, 0, maxVel/m_maxspeeddiv);
 }
 
 void StepperEngine::loose()
@@ -243,5 +250,11 @@ int StepperEngine::isEngineStopped()
 	stopped = random() % 2;
 #endif
 	return stopped;
+}
+
+void StepperEngine::setVelocityLimit(int limit)
+{
+	m_maxspeeddiv = limit;
+        CPhidgetStepper_setVelocityLimit(m_stepper, 0, maxVel / limit);
 }
 

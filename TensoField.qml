@@ -7,7 +7,7 @@ Rectangle {
         opacity: 0.9
         border.color: "black"
         border.width: 3
-        radius: 10
+        radius: 5
         property string field_label
         property string value_text
 

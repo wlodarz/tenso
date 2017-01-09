@@ -1,7 +1,11 @@
-force.max=10000
-force.min=50
+force.max=4000
+force.min=200
 length.loosen=200
 length.20cm=10000
 length.100cm=50000
-length.full=60000
+length.max=999
 direction=1
+engine.maxspeeddiv=200
+engine.speed1=10
+engine.speed2=30
+engine.speed3=50
