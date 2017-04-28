@@ -17,6 +17,13 @@
 #define ENGINE_SPEED1_KEY  "engine.speed1"
 #define ENGINE_SPEED2_KEY  "engine.speed2"
 #define ENGINE_SPEED3_KEY  "engine.speed3"
+#define ENGINE_SPEED4_KEY  "engine.speed4"
+#define ENGINE_SPEED5_KEY  "engine.speed5"
+#define ENGINE_FORCELEVEL1_KEY  "engine.forcelevel1"
+#define ENGINE_FORCELEVEL2_KEY  "engine.forcelevel2"
+#define ENGINE_FORCELEVEL3_KEY  "engine.forcelevel3"
+#define ENGINE_FORCELEVEL4_KEY  "engine.forcelevel4"
+#define ENGINE_FORCELEVEL5_KEY  "engine.forcelevel5"
 
 
 class TensoConfig //: public QThread

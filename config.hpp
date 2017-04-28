@@ -1,7 +1,7 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#define TEST 1
+#define TEST 0
 
 #if TEST
 #define TEST_TENSOMETER 1

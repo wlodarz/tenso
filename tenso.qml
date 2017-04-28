@@ -11,12 +11,12 @@ Rectangle {
 	function emergency_stop() {
 		console.log("Clicked STOP")
 
-		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_IDLE
-		TensoSensor.operationcompleted = 0
-		TensoSensor.suboperation = 0
-
 		moving(0)
 		reporting(0)
+
+		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_STOP
+		TensoSensor.operationcompleted = 0
+		TensoSensor.suboperation = 0
 
 		zeroing_button.button_label = zeroing_button.button_label_default
 		test1_button.button_label = test1_button.button_label_default
@@ -154,6 +154,7 @@ Rectangle {
 
 	function zeroing() {
 		console.log("ZEROING - UNSUPPORTED")
+		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_ZERO
 	}
 
 	function move_left() {
@@ -348,7 +349,8 @@ Rectangle {
 			target: TensoSensor
 			onMeasureUpdatedChanged: {
 				var len = TensoSensor.currentLength
-				var force = TensoSensor.currentForce + 10 * canvas.forceArray.length
+				//var force = TensoSensor.currentForce + 10 * canvas.forceArray.length
+				var force = TensoSensor.currentForce
 				console.log("measure updated : length " + len + " force " + force)
 				TensoSensor.measureUpdate = 0
 				canvas.forceArray.push(force)

@@ -80,6 +80,13 @@ int TensoConfig::validate()
 	if (configHolder.find(ENGINE_SPEED1_KEY) == configHolder.end()) return -1;
 	if (configHolder.find(ENGINE_SPEED2_KEY) == configHolder.end()) return -1;
 	if (configHolder.find(ENGINE_SPEED3_KEY) == configHolder.end()) return -1;
+	if (configHolder.find(ENGINE_SPEED4_KEY) == configHolder.end()) return -1;
+	if (configHolder.find(ENGINE_SPEED5_KEY) == configHolder.end()) return -1;
+	if (configHolder.find(ENGINE_FORCELEVEL1_KEY) == configHolder.end()) return -1;
+	if (configHolder.find(ENGINE_FORCELEVEL2_KEY) == configHolder.end()) return -1;
+	if (configHolder.find(ENGINE_FORCELEVEL3_KEY) == configHolder.end()) return -1;
+	if (configHolder.find(ENGINE_FORCELEVEL4_KEY) == configHolder.end()) return -1;
+	if (configHolder.find(ENGINE_FORCELEVEL5_KEY) == configHolder.end()) return -1;
 
 	return 0;
 }

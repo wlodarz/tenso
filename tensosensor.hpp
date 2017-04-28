@@ -12,6 +12,8 @@
 
 #define MAX_STATES 0x0010
 
+#define CONV_TAB_SIZE 14
+
 enum {
 	TIMER_TYPE_NONE,
 	TIMER_TYPE_PULL,
@@ -60,7 +62,7 @@ class TensoSensor : public QObject {
 		~TensoSensor() {}
 
 		int operationProperty() const { return m_operation; }
-		void setOperationProperty(int val) { m_operation = val; emit operationPropertyChanged(val); }
+		void setOperationProperty(int val) { qDebug() << "setOperation " << val; m_operation = val; emit operationPropertyChanged(val); }
 
 		int subOperationProperty() const { return m_subOperation; }
 		void setSubOperationProperty(int val) { m_subOperation = val; m_subOperationStarted = 0; emit subOperationPropertyChanged(val); }
@@ -106,9 +108,36 @@ class TensoSensor : public QObject {
 		void calculatePower() {
 			int i;
 			int power = 0;
-			for(i=0; i<m_measureIndex; i++) power += force_values[i];
-			m_calculatedPower = power;
+			qDebug() << "calculating " << m_measureIndex;
+			for(i=1; i<m_measureIndex; i++) {
+				int force_mid = (force_values[i] + force_values[i-1]) / 2;
+				int position_delta = steps2mm(position_values[i])-steps2mm(position_values[i-1]);
+				power += (force_mid * position_delta);
+				qDebug() << "power " << power << " force_mid " << force_mid << " position_delta " << position_delta;
+			}
+			//m_calculatedPower = power;
+			float fpower = power;
+			fpower /= 1000; // mm->m
+			fpower /= 1000; // g -> kg
+			qDebug() << "Power " << fpower << "kg*m";
+			setCalculatedPowerProperty(power);
 		}
+		unsigned int steps2mm(unsigned int steps) {
+			int i;
+			qDebug() << "steps2mm " << steps;
+			for(i=1; i<CONV_TAB_SIZE; i++) {
+				if (steps < convtable[i].steps) {
+					qDebug() << "steps_i " << convtable[i].steps;
+					break;
+				}
+			}
+
+			float perc = (float)(steps - convtable[i-1].steps) / (float)(convtable[i].steps - convtable[i-1].steps);
+			int mm_delta = convtable[i-1].mm + (convtable[i].mm - convtable[i-1].mm) * perc;
+			qDebug() << "perc " << perc << "mm_delta " << mm_delta;
+			return mm_delta;
+		}
+
 
 		enum Operations {
 			SENSOR_OPERATION_IDLE = 0,
@@ -200,6 +229,9 @@ signals:
 		void setSubOperationStarted(int started) { m_subOperationStarted = started; }
 		int getSubOperationStarted() { return m_subOperationStarted; }
 
+	public:
+		int m_last_move_val;
+
 	private:
 		int m_operation;
 		int m_subOperation;
@@ -222,6 +254,26 @@ signals:
 
 		std::map<int, int> position_values;
 		std::map<int, int> force_values;
+
+			struct convertable {
+				unsigned int steps;
+				unsigned int mm;
+			} convtable[CONV_TAB_SIZE] = {
+				{0, 0},
+				{10014, 125},
+				{20004, 270},
+				{29994, 430},
+				{40001, 590},
+				{50025, 750},
+				{55003, 850},
+				{60011, 940},
+				{65010, 1030},
+				{70001, 1130},
+				{74992, 1225},
+				{80011, 1320},
+				{85011, 1415},
+				{90006, 1515}
+			};
 };
 
 #endif // __TENSOSENSOR_H__
