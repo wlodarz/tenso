@@ -72,6 +72,7 @@ int TensoThread::configure()
 	m_stepperengine->setDirection(m_config->getConfigValueInt(DIRECTION_KEY));
 	m_stepperengine->setLoosenDelta(m_config->getConfigValueInt(LENGTH_LOOSEN_KEY));
 	m_stepperengine->setMaxSpeedDiv(m_config->getConfigValueInt(ENGINE_MAXSPEEDDIV_KEY));
+	m_stepperengine->setMinSpeedDiv(m_config->getConfigValueInt(ENGINE_MINSPEEDDIV_KEY));
 
 	m_sensor->setMaxForceProperty(m_config->getConfigValueInt(FORCE_MAX_KEY));
 	m_sensor->setMaxLengthProperty(m_config->getConfigValueInt(LENGTH_MAX_KEY));

@@ -32,6 +32,8 @@ public:
 	int getDirection() { return m_direction; }
 	void setMaxSpeedDiv(int div) { m_maxspeeddiv = div; }
 	int getMaxSpeedDiv() { return m_maxspeeddiv; } 
+	void setMinSpeedDiv(int div) { m_minspeeddiv = div; }
+	int getMinSpeedDiv() { return m_minspeeddiv; } 
 	void setVelocityLimit(int limit);
 
 private:
@@ -41,6 +43,7 @@ private:
 	int m_loosen_delta;
 	int m_direction; // if position is added from start to max, this flag should be 1, otherwise 0
 	int m_maxspeeddiv; // div
+	int m_minspeeddiv; // div
 	CPhidgetStepperHandle m_stepper;
 
 	double minAccel, maxAccel, maxVel;

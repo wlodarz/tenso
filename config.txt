@@ -6,6 +6,7 @@ length.100cm=50000
 length.max=180000
 direction=1
 engine.maxspeeddiv=200
+engine.minspeeddiv=600
 engine.speed1=40
 engine.speed2=150
 engine.speed3=275

@@ -13,6 +13,7 @@
 #define LENGTH_100CM_KEY  "length.100cm"
 #define LENGTH_MAX_KEY   "length.max"
 #define DIRECTION_KEY     "direction"
+#define ENGINE_MINSPEEDDIV_KEY  "engine.minspeeddiv"
 #define ENGINE_MAXSPEEDDIV_KEY  "engine.maxspeeddiv"
 #define ENGINE_SPEED1_KEY  "engine.speed1"
 #define ENGINE_SPEED2_KEY  "engine.speed2"

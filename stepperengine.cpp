@@ -133,15 +133,14 @@ int StepperEngine::init()
 
 void StepperEngine::start()
 {
-	int speed_limit = maxVel / m_maxspeeddiv;
+	int speed_limit = maxVel / m_minspeeddiv;
+
 	qDebug() << "StepperEngine::start() limit " << speed_limit;
 	qDebug() << "StepperEngine::start() maxVel " << maxVel;
-	qDebug() << "StepperEngine::start() m_maxspeeddiv " << m_maxspeeddiv;
+	qDebug() << "StepperEngine::start() m_minspeeddiv " << m_minspeeddiv;
 
 	if (checkConnected() < 0) return;
         CPhidgetStepper_setVelocityLimit(m_stepper, 0, speed_limit);
-
-        //CPhidgetStepper_setEngaged(m_stepper, 0, 1);
 }
 
 void StepperEngine::stop()

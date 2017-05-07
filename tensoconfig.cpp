@@ -77,6 +77,7 @@ int TensoConfig::validate()
 	if (configHolder.find(LENGTH_MAX_KEY) == configHolder.end()) return -1;
 	if (configHolder.find(DIRECTION_KEY) == configHolder.end()) return -1;
 	if (configHolder.find(ENGINE_MAXSPEEDDIV_KEY) == configHolder.end()) return -1;
+	if (configHolder.find(ENGINE_MINSPEEDDIV_KEY) == configHolder.end()) return -1;
 	if (configHolder.find(ENGINE_SPEED1_KEY) == configHolder.end()) return -1;
 	if (configHolder.find(ENGINE_SPEED2_KEY) == configHolder.end()) return -1;
 	if (configHolder.find(ENGINE_SPEED3_KEY) == configHolder.end()) return -1;
