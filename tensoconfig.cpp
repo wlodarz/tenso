@@ -88,6 +88,8 @@ int TensoConfig::validate()
 	if (configHolder.find(ENGINE_FORCELEVEL3_KEY) == configHolder.end()) return -1;
 	if (configHolder.find(ENGINE_FORCELEVEL4_KEY) == configHolder.end()) return -1;
 	if (configHolder.find(ENGINE_FORCELEVEL5_KEY) == configHolder.end()) return -1;
+	if (configHolder.find(CALIBRATE_FORCE_0_KEY) == configHolder.end()) return -1;
+	if (configHolder.find(CALIBRATE_LENGTH_LOOSE_KEY) == configHolder.end()) return -1;
 
 	return 0;
 }

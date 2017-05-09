@@ -453,6 +453,67 @@ void TensoThread::onControlTimeout()
 		}
 		break;
 
+		case TensoSensor::Operations::SENSOR_OPERATION_CALIBRATE:
+		{
+			//m_sensor->setOperationProperty(TensoSensor::Operations::SENSOR_OPERATION_IDLE);
+			//m_sensor->setSubOperationProperty(TensoSensor::Suboperations::NONE_SUBOPERATION);
+
+			/* one time initialization code
+			 */
+
+			qDebug() << "SENSOR_OPERATION_MEASURE2";
+			switch (m_sensor->subOperationProperty()) {
+				case TensoSensor::Suboperations::CALIBRATE_SUBOPERATION_TILL_FORCE_MAX:
+				{
+					if (m_sensor->getSubOperationStarted() == 0) {
+
+						/* just start the engine with the middle speed
+						*/
+						int engine_speed_val = m_config->getConfigValueInt(ENGINE_SPEED2_KEY);
+						m_stepperengine->setVelocityLimit(engine_speed_val);
+						m_stepperengine->setTargetPosition(m_config->getConfigValueInt(LENGTH_MAX_KEY));
+						m_stepperengine->start();
+						m_sensor->setSubOperationStarted(1);
+					}
+
+					/* control force
+					*/
+					int current_force_value = m_tensometer->getForceValue();
+					if (current_force_value >= m_config->getConfigValueInt(CALIBRATE_FORCE_0_KEY)) {
+						m_stepperengine->stop();
+						m_sensor->setSubOperationProperty(TensoSensor::Suboperations::CALIBRATE_SUBOPERATION_LOOSE);
+						m_sensor->setSubOperationStarted(0);
+					}
+				}
+				break;
+				case TensoSensor::Suboperations::CALIBRATE_SUBOPERATION_LOOSE:
+				{
+					if (m_sensor->getSubOperationStarted() == 0) {
+
+						/* just start the engine with the middle speed
+						*/
+						int engine_speed_val = m_config->getConfigValueInt(ENGINE_SPEED2_KEY);
+						m_stepperengine->setVelocityLimit(engine_speed_val);
+						m_stepperengine->setTargetPosition(m_config->getConfigValueInt(LENGTH_MAX_KEY));
+						m_stepperengine->start();
+						m_sensor->setSubOperationStarted(1);
+					} else {
+
+						if (m_stepperengine->isEngineStopped()) {
+							m_sensor->setOperationCompletedProperty(1);
+							m_sensor->setOperationProperty(TensoSensor::Operations::SENSOR_OPERATION_IDLE);
+							m_sensor->setSubOperationProperty(TensoSensor::Suboperations::NONE_SUBOPERATION);
+						}
+					}
+				}
+				break;
+				default:
+				{
+				}
+			}
+		}
+		break;
+
 		default:
 		{
 			qDebug() << "Unknown operaton"; 
