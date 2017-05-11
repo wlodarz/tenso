@@ -6,6 +6,13 @@
 #include <QString>
 #include <QMap>
 
+#define CHECK_CONFIG_ENTRY(x) \
+	if (configHolder.find(x) == configHolder.end()) { \
+		qDebug() << "can not find config entry " << x; \
+		return -1; \
+	}
+
+
 #define LENGTH_LOOSEN_KEY "length.loosen"
 #define FORCE_MAX_KEY     "force.max"
 #define FORCE_MIN_KEY     "force.min"
@@ -26,7 +33,7 @@
 #define ENGINE_FORCELEVEL4_KEY  "engine.forcelevel4"
 #define ENGINE_FORCELEVEL5_KEY  "engine.forcelevel5"
 #define CALIBRATE_FORCE_0_KEY "calibrate.force.0"
-#define CALIBRATE_LENGTH_LOOSE_KEY "calibrate.lenght.loose"
+#define CALIBRATE_LENGTH_LOOSE_KEY "calibrate.length.loose"
 
 
 class TensoConfig //: public QThread

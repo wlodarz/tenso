@@ -70,27 +70,27 @@ int TensoConfig::load(QString configFileName)
 
 int TensoConfig::validate()
 {
-	if (configHolder.find(LENGTH_LOOSEN_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(FORCE_MAX_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(LENGTH_20CM_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(LENGTH_100CM_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(LENGTH_MAX_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(DIRECTION_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_MAXSPEEDDIV_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_MINSPEEDDIV_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_SPEED1_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_SPEED2_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_SPEED3_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_SPEED4_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_SPEED5_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_FORCELEVEL1_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_FORCELEVEL2_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_FORCELEVEL3_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_FORCELEVEL4_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(ENGINE_FORCELEVEL5_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(CALIBRATE_FORCE_0_KEY) == configHolder.end()) return -1;
-	if (configHolder.find(CALIBRATE_LENGTH_LOOSE_KEY) == configHolder.end()) return -1;
-
+	CHECK_CONFIG_ENTRY(LENGTH_LOOSEN_KEY);
+	CHECK_CONFIG_ENTRY(FORCE_MAX_KEY);
+	CHECK_CONFIG_ENTRY(LENGTH_20CM_KEY);
+	CHECK_CONFIG_ENTRY(LENGTH_100CM_KEY);
+	CHECK_CONFIG_ENTRY(LENGTH_MAX_KEY);
+	CHECK_CONFIG_ENTRY(DIRECTION_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_MAXSPEEDDIV_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_MINSPEEDDIV_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_SPEED1_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_SPEED2_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_SPEED3_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_SPEED4_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_SPEED5_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_FORCELEVEL1_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_FORCELEVEL2_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_FORCELEVEL3_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_FORCELEVEL4_KEY);
+	CHECK_CONFIG_ENTRY(ENGINE_FORCELEVEL5_KEY);
+	CHECK_CONFIG_ENTRY(CALIBRATE_FORCE_0_KEY);
+	CHECK_CONFIG_ENTRY(CALIBRATE_LENGTH_LOOSE_KEY);
+	
 	return 0;
 }
 

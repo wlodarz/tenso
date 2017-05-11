@@ -60,9 +60,7 @@ Rectangle {
         		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_MOVE
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: {
-					Control.moving(1)
-				}
+                		onClicked: Control.moving(1)
         		}
 		}
 
@@ -76,9 +74,7 @@ Rectangle {
         		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_ZERO
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: {
-					Control.zeroing()
-				}
+                		onClicked: Control.zeroing()
         		}
 		}
 
@@ -92,9 +88,7 @@ Rectangle {
         		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_CALIBRATE
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: {
-					Control.calibrate()
-				}
+                		onClicked: Control.calibrate()
         		}
 		}
 
@@ -108,9 +102,7 @@ Rectangle {
         		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_MEASURE1
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: {
-					Control.test_mode_1()
-				}
+                		onClicked: Control.test_mode_1()
         		}
 		}
 
@@ -125,9 +117,7 @@ Rectangle {
         		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_MEASURE2
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: {
-					Control.test_mode_2()
-				}
+                		onClicked: Control.test_mode_2()
 			}
 		}
 		TensoButton {
@@ -139,9 +129,7 @@ Rectangle {
         		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_PARK
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: {
-					Control.parking()
-				}
+                		onClicked: Control.parking()
         		}
 		}
 		TensoButton {
@@ -153,9 +141,7 @@ Rectangle {
         		property bool activated: false
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: {
-					Control.reporting(1)
-				}
+                		onClicked: Control.reporting(1)
         		}
 		}
 		TensoButton {
@@ -166,9 +152,7 @@ Rectangle {
         		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_STOP
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: {
-					Control.emergency_stop()
-				}
+                		onClicked: Control.emergency_stop()
         		}
 		}
 

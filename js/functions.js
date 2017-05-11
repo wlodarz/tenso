@@ -89,40 +89,6 @@ function calibrate() {
 	else {
 		console.log("other state - do nothing")
 	}
-	/*
-		   if (TensoSensor.operation == TensoSensor.SENSOR_OPERATION_CALIBRATE) {
-		   console.log("op: idle -> motoroff")
-		   parent.button_label = "MotorOff"
-		   TensoSensor.operation = TensoSensor.SENSOR_OPERATION_ZERO
-		   TensoSensor.suboperation = TensoSensor.ZERO_SUBOPERATION_MOTOROFF
-		   TensoSensor.operationcompleted = 0
-		   }
-		   if (TensoSensor.operation == 1 && TensoSensor.operationcompleted == 1) {
-		   switch (TensoSensor.suboperation) {
-		   case TensoSensor.ZERO_SUBOPERATION_MOTOROFF:
-		   {
-		   console.log("op: motoroff -> till40kg")
-		   parent.button_label = "Till40kg"
-		   TensoSensor.suboperation=TensoSensor.ZERO_SUBOPERATION_TILL40KG
-		   TensoSensor.operationcompleted = 0
-		   }
-		   break;
-		   case TensoSensor.ZERO_SUBOPERATION_TILL40KG:
-		   {
-		   console.log("op: till40kg -> idle")
-		   parent.button_label = parent.button_label_default
-		   TensoSensor.operation=TensoSensor.SENSOR_OPERATION_IDLE
-		   TensoSensor.suboperation=NONE_SUBOPERATION
-		   TensoSensor.operationcompleted = 0
-		   }
-		   break;
-		   default:
-		   console.log("op: zeroing state: unknown " + TensoSensor.suboperation)
-		   }
-		   } else {
-		   console.log("other state - do nothing")
-		   }
-		   */
 }
 
 function moving(on_off) {
@@ -154,7 +120,7 @@ function parking() {
 }
 
 function zeroing() {
-	console.log("ZEROING - UNSUPPORTED")
+	console.log("ZEROING")
 	TensoSensor.operation = TensoSensor.SENSOR_OPERATION_ZERO
 }
 
@@ -169,15 +135,13 @@ function move_right() {
 }
 
 function reporting(on_off) {
-	//console.log("POWER " + TensoSensor.calculatedPower)
+	console.log("REPORT")
 	reporting_widget.steps = TensoSensor.measureIndex
 	reporting_widget.power = TensoSensor.calculatedPower
 	if (on_off == 1) {
-		TensoSensor.moving = 1
 		reporting_widget.focus=true
 		reporting_widget.visible=true
 	} else {
-		TensoSensor.moving = 0
 		reporting_widget.focus=false
 		reporting_widget.visible=false
 	}

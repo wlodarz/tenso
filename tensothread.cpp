@@ -20,8 +20,6 @@
 #include "stepperengine.hpp"
 #include "tensoconfig.hpp"
 
-#include "values.hpp"
-
 int TensoThread::init(TensoSensor *sensor)
 {
 	test_counter = 0;
