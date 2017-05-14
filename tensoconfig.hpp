@@ -12,7 +12,6 @@
 		return -1; \
 	}
 
-
 #define LENGTH_LOOSEN_KEY "length.loosen"
 #define FORCE_MAX_KEY     "force.max"
 #define FORCE_MIN_KEY     "force.min"
@@ -44,8 +43,8 @@ public:
 	~TensoConfig() {}
 
 	int init(QString configFileName);
-	QString getConfigValueStr(QString key);
-	int getConfigValueInt(QString key);
+	QString getConfigStr(QString key);
+	int getConfigInt(QString key);
 
 private:
 	int load(QString configFileName);

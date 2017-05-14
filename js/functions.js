@@ -14,60 +14,13 @@ function emergency_stop() {
 	test2_button.button_label = test2_button.button_label_default
 }
 
-function test_mode_1(mode) {
-	console.log("Clicked zeroing " + parent.activated)
-	if (TensoSensor.operation == TensoSensor.SENSOR_OPERATION_IDLE) {
-		console.log("op: idle -> prerun");
-		parent.button_label = "PreRun"
-		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_MEASURE1
-		TensoSensor.operationcompleted = 0
-		TensoSensor.suboperation = TensoSensor.MEASURE1_SUBOPERATON_20CM
-
-		canvas.forceArray.length = 0
-		canvas.lengthArray.length = 0
-	}
-	if (TensoSensor.operation == TensoSensor.SENSOR_OPERATION_MEASURE1 && TensoSensor.operationcompleted == 1) {
-		switch (TensoSensor.suboperation) {
-			case MEASURE1_SUBOPERATION_20CM:
-				{
-					console.log("op: prerun -> measure")
-					parent.button_label = "Measure"
-					TensoSensor.suboperation=TensoSensor.MEASURE1_SUBOPERATION_LEN
-					TensoSensor.operationcompleted = 0
-				}
-				break;
-			case MEASURE1_SUBOPERATION_MEASURE_LEN:
-				{
-					console.log("op: measure -> run100cm")
-					parent.button_label = "Run100"
-					TensoSensor.suboperation=TensoSensor.MEASURE1_SUBOPERATION_100CM
-					TensoSensor.operationcompleted = 0
-				}
-				break;
-			case MEASURE1_SUBOPERATION_100CM:
-				{
-					console.log("op: measure -> idle")
-					parent.button_label = parent.button_label_default
-					TensoSensor.operation=TensoSensor.SENSOR_OPERATION_IDLE
-					TensoSensor.suboperation=NONE_SUBOPERATION
-					TensoSensor.operationcompleted = 0
-				}
-				break;
-			default:
-				console.log("op: zeroing state: unknown " + TensoSensor.suboperation)
-		}
-	} else {
-		console.log("other state - do nothing")
-	}
-}
-
-function test_mode_2() {
-	console.log("Clicked zeroing " + parent.activated)
+function measure1() {
+	console.log("Measure1 " + parent.activated)
 	if (TensoSensor.operation == 0) {
-		console.log("op: idle -> till40kg");
-		parent.button_label = "TILL40KG"
-		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_MEASURE2
-		TensoSensor.suboperation = TensoSensor.MEASURE2_SUBOPERATION_TILL40KG
+		console.log("op: idle -> measure");
+		parent.button_label = "Measure"
+		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_MEASURE1
+		TensoSensor.suboperation = TensoSensor.MEASURE1_SUBOPERATION_TILLMAXFORCE
 		TensoSensor.operationcompleted = 0
 		canvas.forceArray.length = 0
 		canvas.lengthArray.length = 0
@@ -75,6 +28,10 @@ function test_mode_2() {
 	else {
 		console.log("other state - do nothing")
 	}
+}
+
+function measure2() {
+	console.log("Measure2 " + parent.activate)
 }
 
 function calibrate() {

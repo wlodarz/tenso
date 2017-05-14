@@ -20,13 +20,13 @@ int TensoConfig::init(QString configFileName)
 	return validate();
 }
 
-QString TensoConfig::getConfigValueStr(QString key)
+QString TensoConfig::getConfigStr(QString key)
 {
 	if (configHolder.find(key) == configHolder.end()) return QString("");
 	return configHolder[key];
 }
 
-int TensoConfig::getConfigValueInt(QString key)
+int TensoConfig::getConfigInt(QString key)
 {
 	if (configHolder.find(key) == configHolder.end()) return -1;
 	return configHolder[key].toInt();

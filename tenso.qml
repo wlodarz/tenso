@@ -102,7 +102,7 @@ Rectangle {
         		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_MEASURE1
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: Control.test_mode_1()
+                		onClicked: Control.measure1()
         		}
 		}
 
@@ -117,7 +117,7 @@ Rectangle {
         		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_MEASURE2
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: Control.test_mode_2()
+                		onClicked: Control.measure2()
 			}
 		}
 		TensoButton {

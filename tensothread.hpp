@@ -23,6 +23,11 @@ private:
   void run();
 
   void testFunction();
+  void operationMove();
+  void operationMeasure1();
+  void operationCalibrate();
+
+  void adaptSpeed();
 
 public slots:
   void onTimeout();
