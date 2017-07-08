@@ -1,8 +1,6 @@
 #ifndef __TENSOCONFIG_HPP__
 #define __TENSOCONFIG_HPP__
 
-//#include <QtCore>
-//#include <QDebug>
 #include <QString>
 #include <QMap>
 
@@ -33,6 +31,12 @@
 #define ENGINE_FORCELEVEL5_KEY  "engine.forcelevel5"
 #define CALIBRATE_FORCE_0_KEY "calibrate.force.0"
 #define CALIBRATE_LENGTH_LOOSE_KEY "calibrate.length.loose"
+#define MEASURE1_HOLDTIME_KEY "measure1.holdtime"
+#define MEASURE2_HOLDTIME_KEY "measure2.holdtime"
+#define MEASURE2_HOLDFORCE_KEY "measure2.holdforce"
+#define MEASURE2_MINFORCE_KEY "measure2.minforce"
+#define CONFIG_ROTATION_CONST1_KEY "config.rotation.const1"
+#define CONFIG_ROTATION_CONST2_KEY "config.rotation.const2"
 
 
 class TensoConfig //: public QThread
@@ -45,6 +49,7 @@ public:
 	int init(QString configFileName);
 	QString getConfigStr(QString key);
 	int getConfigInt(QString key);
+	float getConfigFloat(QString key);
 
 private:
 	int load(QString configFileName);

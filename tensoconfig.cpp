@@ -32,6 +32,12 @@ int TensoConfig::getConfigInt(QString key)
 	return configHolder[key].toInt();
 }
 
+float TensoConfig::getConfigFloat(QString key)
+{
+	if (configHolder.find(key) == configHolder.end()) return -1;
+	return configHolder[key].toFloat();
+}
+
 int TensoConfig::parseLine(QString line)
 {
 	QString key, value;
@@ -90,6 +96,12 @@ int TensoConfig::validate()
 	CHECK_CONFIG_ENTRY(ENGINE_FORCELEVEL5_KEY);
 	CHECK_CONFIG_ENTRY(CALIBRATE_FORCE_0_KEY);
 	CHECK_CONFIG_ENTRY(CALIBRATE_LENGTH_LOOSE_KEY);
+	CHECK_CONFIG_ENTRY(MEASURE1_HOLDTIME_KEY);
+	CHECK_CONFIG_ENTRY(MEASURE2_HOLDTIME_KEY);
+	CHECK_CONFIG_ENTRY(MEASURE2_HOLDFORCE_KEY);
+	CHECK_CONFIG_ENTRY(MEASURE2_MINFORCE_KEY);
+	CHECK_CONFIG_ENTRY(CONFIG_ROTATION_CONST1_KEY);
+	CHECK_CONFIG_ENTRY(CONFIG_ROTATION_CONST2_KEY);
 	
 	return 0;
 }

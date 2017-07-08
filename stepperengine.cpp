@@ -57,6 +57,8 @@ int CCONV PositionChangeHandler(CPhidgetStepperHandle stepper, void *userptr, in
 	StepperEngine *engine = (StepperEngine *)userptr;
 	stepper = stepper;
 	Index = Index;
+	engine = engine;
+	Value = Value;
         //qDebug() << "Motor: " << Index << " Current Position: " << Value;
 	//engine->setPosition(Value);
 
@@ -100,7 +102,8 @@ int StepperEngine::init()
 	CPhidgetStepper_getVelocityMax(m_stepper, 0, &maxVel);
 
 	//CPhidgetStepper_setAcceleration(m_stepper, 0, minAccel*100);
-	CPhidgetStepper_setAcceleration(m_stepper, 0, maxAccel/250);
+	//CPhidgetStepper_setAcceleration(m_stepper, 0, maxAccel/250);
+	CPhidgetStepper_setAcceleration(m_stepper, 0, maxAccel/10000);
         CPhidgetStepper_setVelocityLimit(m_stepper, 0, maxVel/m_maxspeeddiv);
 
 	CPhidgetStepper_setCurrentPosition(m_stepper, 0, 0);
@@ -202,15 +205,15 @@ void StepperEngine::setTargetPosition(__int64 position)
 
 __int64 StepperEngine::getCurrentPosition()
 {
-	__int64 curr_pos;
 	//qDebug() << "StepperEngine::getCurrentPosition()";
-
 #if TEST_ENGINE
 	static int position;
 	position++;
 	position %= 1000;
 	return position;
 #else
+	__int64 curr_pos;
+
 	if (checkConnected() < 0) return -1;
 
 	if(CPhidgetStepper_getCurrentPosition(m_stepper, 0, &curr_pos) == EPHIDGET_OK)	
@@ -256,6 +259,6 @@ void StepperEngine::setVelocityLimit(int limit)
 {
 	m_maxspeeddiv = limit;
         CPhidgetStepper_setVelocityLimit(m_stepper, 0, maxVel / limit);
-	qDebug() << "speed " << maxVel / limit;
+	//qDebug() << "speed " << maxVel / limit;
 }
 

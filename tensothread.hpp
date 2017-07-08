@@ -16,6 +16,7 @@ class TensoThread : public QThread
 
 public:
   int loadConfig(QString);
+  int loadSteps2CmTable(QString filename);
   int configure();
   int init(TensoSensor *);
 
@@ -25,9 +26,12 @@ private:
   void testFunction();
   void operationMove();
   void operationMeasure1();
+  void operationMeasure2();
   void operationCalibrate();
 
   void adaptSpeed();
+
+  int parseConvertLine(QString line);
 
 public slots:
   void onTimeout();

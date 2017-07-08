@@ -6,6 +6,8 @@
 #include <QTimer>
 #include <map>
 
+#include <math.h>
+
 #define MAX_POSITION 200
 #define LENGTH_TODO 100 /* in cm */
 #define FORCE_TODO 300
@@ -37,11 +39,20 @@ class TensoSensor : public QObject {
 		Q_PROPERTY(int measureStarted READ measureStartedProperty WRITE setMeasureStartedProperty NOTIFY measureStartedPropertyChanged)
 
 		Q_PROPERTY(int measureIndex READ measureIndexProperty WRITE setMeasureIndexProperty NOTIFY measureIndexPropertyChanged)
+		Q_PROPERTY(int measureUpIndex READ measureUpIndexProperty WRITE setMeasureUpIndexProperty NOTIFY measureUpIndexPropertyChanged)
+		Q_PROPERTY(int measureHoldIndex READ measureHoldIndexProperty WRITE setMeasureHoldIndexProperty NOTIFY measureHoldIndexPropertyChanged)
+		Q_PROPERTY(int measureDownIndex READ measureDownIndexProperty WRITE setMeasureDownIndexProperty NOTIFY measureDownIndexPropertyChanged)
 
 		Q_PROPERTY(int maxForce READ maxForceProperty WRITE setMaxForceProperty NOTIFY maxForcePropertyChanged)
 		Q_PROPERTY(int maxLength READ maxLengthProperty WRITE setMaxLengthProperty NOTIFY maxLengthPropertyChanged)
 
-		Q_PROPERTY(int calculatedPower READ calculatedPowerProperty WRITE setCalculatedPowerProperty NOTIFY calculatedPowerPropertyChanged)
+		Q_PROPERTY(int calculatedWorkUp READ calculatedWorkUpProperty WRITE setCalculatedWorkUpProperty NOTIFY calculatedWorkUpPropertyChanged)
+		Q_PROPERTY(int calculatedWorkHold READ calculatedWorkHoldProperty WRITE setCalculatedWorkHoldProperty NOTIFY calculatedWorkHoldPropertyChanged)
+		Q_PROPERTY(int calculatedWorkDown READ calculatedWorkDownProperty WRITE setCalculatedWorkDownProperty NOTIFY calculatedWorkDownPropertyChanged)
+		Q_PROPERTY(int measurePhase READ measurePhaseProperty WRITE setMeasurePhaseProperty NOTIFY measurePhasePropertyChanged)
+		Q_PROPERTY(float maxMeasuredLength READ maxMeasuredLengthProperty WRITE setMaxMeasuredLengthProperty NOTIFY maxMeasuredLengthPropertyChanged)
+		Q_PROPERTY(float minMeasuredLength READ minMeasuredLengthProperty WRITE setMinMeasuredLengthProperty NOTIFY minMeasuredLengthPropertyChanged)
+		Q_PROPERTY(int secondsCounter READ secondsCounterProperty WRITE setSecondsCounterProperty NOTIFY secondsCounterPropertyChanged)
 
 	public:
 		TensoSensor(QObject *parent = 0) : QObject(parent),
@@ -55,9 +66,18 @@ class TensoSensor : public QObject {
 		m_maxLength(0),
 		m_measureUpdated(0),
 		m_measureStarted(0),
+		m_calculatedWorkUp(0),
+		m_calculatedWorkHold(0),
+		m_calculatedWorkDown(0),
+		m_timerType(TIMER_TYPE_NONE),
 		m_measureIndex(0),
-		m_calculatedPower(0),
-		m_timerType(TIMER_TYPE_NONE)
+		m_measureUpIndex(0),
+		m_measureHoldIndex(0),
+		m_measureDownIndex(0),
+		m_measurePhase(MEASURE_PHASE_NONE),
+		m_maxMeasuredLength(0.0),
+		m_minMeasuredLength(0.0),
+		m_secondsCounter(0)
 	{}
 		~TensoSensor() {}
 
@@ -94,37 +114,132 @@ class TensoSensor : public QObject {
 		int measureIndexProperty() const { qDebug() << "measureIndex get"; return m_measureIndex; }
 		void setMeasureIndexProperty(int val) { m_measureIndex = val; emit measureIndexPropertyChanged(val); }
 
-		int calculatedPowerProperty() const { qDebug() << "calculatedPower get"; return m_calculatedPower; }
-		void setCalculatedPowerProperty(int val) { m_calculatedPower = val; emit calculatedPowerPropertyChanged(val); }
+		int measureUpIndexProperty() const { qDebug() << "measureUpIndex get"; return m_measureUpIndex; }
+		void setMeasureUpIndexProperty(int val) { m_measureUpIndex = val; emit measureUpIndexPropertyChanged(val); }
+		int measureHoldIndexProperty() const { qDebug() << "measureHoldIndex get"; return m_measureHoldIndex; }
+		void setMeasureHoldIndexProperty(int val) { m_measureHoldIndex = val; emit measureHoldIndexPropertyChanged(val); }
+		int measureDownIndexProperty() const { qDebug() << "measureDownIndex get"; return m_measureDownIndex; }
+		void setMeasureDownIndexProperty(int val) { m_measureDownIndex = val; emit measureDownIndexPropertyChanged(val); }
+
+		int calculatedWorkUpProperty() const { qDebug() << "calculatedWorkUp get"; return m_calculatedWorkUp; }
+		void setCalculatedWorkUpProperty(int val) { m_calculatedWorkUp = val; emit calculatedWorkUpPropertyChanged(val); }
+		int calculatedWorkHoldProperty() const { qDebug() << "calculatedWorkHold get"; return m_calculatedWorkHold; }
+		void setCalculatedWorkHoldProperty(int val) { m_calculatedWorkHold = val; emit calculatedWorkHoldPropertyChanged(val); }
+		int calculatedWorkDownProperty() const { qDebug() << "calculatedWorkDown get"; return m_calculatedWorkDown; }
+		void setCalculatedWorkDownProperty(int val) { m_calculatedWorkDown = val; emit calculatedWorkDownPropertyChanged(val); }
+		int secondsCounterProperty() const { qDebug() << "secondsCounter get"; return m_secondsCounter; }
+		void setSecondsCounterProperty(int val) { m_secondsCounter = val; emit secondsCounterPropertyChanged(val); }
 
 		int timerTypeProperty() const { return m_timerType; }
 		void setTimerType(int type) { m_timerType = type; }
 
 		void updateMeasure(int position, int force) {
+			switch (m_measurePhase) {
+				case MeasurePhases::MEASURE_PHASE_UP:
+					m_measureUpIndex++;
+					break;
+				case MeasurePhases::MEASURE_PHASE_HOLD:
+					m_measureHoldIndex++;
+					break;
+				case MeasurePhases::MEASURE_PHASE_DOWN:
+					m_measureDownIndex++;
+					break;
+			}
 			position_values[m_measureIndex] = position;
 			force_values[m_measureIndex] = force;
 			m_measureIndex++;
 		}
-		void calculatePower() {
+
+		int measurePhaseProperty() const { return m_measurePhase; }
+		void setMeasurePhaseProperty(int val) { m_measurePhase = val; emit measurePhasePropertyChanged(val); }
+
+		int maxMeasuredLengthProperty() const { return m_maxMeasuredLength; }
+		void setMaxMeasuredLengthProperty(int val) { m_maxMeasuredLength = val; emit maxMeasuredLengthPropertyChanged(val); }
+		int minMeasuredLengthProperty() const { return m_minMeasuredLength; }
+		void setMinMeasuredLengthProperty(int val) { m_minMeasuredLength = val; emit minMeasuredLengthPropertyChanged(val); }
+
+		float calculateWork(int index) {
 			int i;
-			int power = 0;
-			qDebug() << "calculating " << m_measureIndex;
-			for(i=1; i<m_measureIndex; i++) {
-				int force_mid = (force_values[i] + force_values[i-1]) / 2;
-				int position_delta = steps2mm(position_values[i])-steps2mm(position_values[i-1]);
-				power += (force_mid * position_delta);
-				qDebug() << "power " << power << " force_mid " << force_mid << " position_delta " << position_delta;
+			float work = 0.0;
+			//qDebug() << "calculating " << index;
+			for(i=1; i<index; i++) {
+				float force_mid = (force_values[i] + force_values[i-1]) / 2.0;
+				float position_delta = fabsf(steps2cm(position_values[i])-steps2cm(position_values[i-1]));
+				work += (force_mid * position_delta);
+				//qDebug() << "work " << work << " force_mid " << force_mid << " position_delta " << position_delta;
 			}
-			//m_calculatedPower = power;
-			float fpower = power;
-			fpower /= 1000; // mm->m
-			fpower /= 1000; // g -> kg
-			qDebug() << "Power " << fpower << "kg*m";
-			setCalculatedPowerProperty(power);
+			work /= 100.0; // mm->m
+			work /= 1000.0; // g -> kg
+			qDebug() << "Up Power " << work << "kg*m " << index;
+			//setCalculatedWorkUpProperty((int)work);
+			return work;
 		}
-		unsigned int steps2mm(unsigned int steps) {
+
+#if 0
+		float calculateWorkHold(int index) {
 			int i;
-			qDebug() << "steps2mm " << steps;
+			int work = 0;
+			//qDebug() << "calculating " << m_measureHoldIndex;
+			for(i=1; i<m_measureHoldIndex; i++) {
+				int force_mid = (force_values[i] + force_values[i-1]) / 2;
+				int position_delta = abs(steps2mm(position_values[i])-steps2mm(position_values[i-1]));
+				work += (force_mid * position_delta);
+				//qDebug() << "work " << work << " force_mid " << force_mid << " position_delta " << position_delta;
+			}
+			float fwork = work;
+			fwork /= 1000; // mm->m
+			fwork /= 1000; // g -> kg
+			qDebug() << "Hold Power " << fwork << "kg*m " << m_measureHoldIndex;
+			//setCalculatedWorkHoldProperty(work);
+			return work;
+		}
+
+		void calculateWorkDown() {
+			int i;
+			int work = 0;
+			//qDebug() << "calculating " << m_measureDownIndex;
+			for(i=1; i<m_measureDownIndex; i++) {
+				unsigned int force_mid = (force_values[i] + force_values[i-1]) / 2;
+				unsigned int position_delta = abs(steps2mm(position_values[i])-steps2mm(position_values[i-1]));
+				work += (force_mid * position_delta);
+				qDebug() << "work " << work << " force_mid " << force_mid << " position_delta " << position_delta;
+			}
+			float fwork = work;
+			fwork /= 1000; // mm->m
+			fwork /= 1000; // g -> kg
+			qDebug() << "Down Power " << fwork << "kg*m " << m_measureDownIndex;
+			setCalculatedWorkDownProperty(work);
+		}
+#endif
+
+		float steps2cm(unsigned int steps) {
+			unsigned int steps_start = 0, steps_end = 0;
+			float cm_start = 0.0, cm_end = 0.0;
+			float  cm_delta = 0.0;
+
+			qDebug() << "steps2cm " << steps;
+
+			for(std::map<unsigned int, float>::iterator it = steps2cm_table.begin();
+					it != steps2cm_table.end();
+					it++) {
+				steps_end = it->first;
+				cm_end = it->second;
+
+				if (steps < steps_end) {
+					qDebug() << "steps_i " << steps_end;
+				}
+
+				steps_start = steps_end;
+				cm_start = cm_end;
+			}
+
+			float perc = (float)(steps - steps_start) / (float)(steps_end - steps_start);
+			cm_delta = cm_start + (cm_end - cm_start) * perc;
+
+			qDebug() << "perc " << perc << "mm_delta " << cm_delta;
+
+			/*
+			int i;
 			for(i=1; i<CONV_TAB_SIZE; i++) {
 				if (steps < convtable[i].steps) {
 					qDebug() << "steps_i " << convtable[i].steps;
@@ -134,10 +249,16 @@ class TensoSensor : public QObject {
 
 			float perc = (float)(steps - convtable[i-1].steps) / (float)(convtable[i].steps - convtable[i-1].steps);
 			int mm_delta = convtable[i-1].mm + (convtable[i].mm - convtable[i-1].mm) * perc;
-			qDebug() << "perc " << perc << "mm_delta " << mm_delta;
-			return mm_delta;
+			//qDebug() << "perc " << perc << "mm_delta " << mm_delta;
+			*/
+			return cm_delta;
 		}
 
+		float calculateTurns(float const1, float const2, float a, float b) {
+			float rotates;
+			rotates = (a / 2.54) * powf(((b + const1) / 2.54), 0.5) / const2;
+			return rotates;
+		}
 
 		enum Operations {
 			SENSOR_OPERATION_IDLE = 0,
@@ -162,18 +283,35 @@ class TensoSensor : public QObject {
 
 			/* MEASURE1 */
 			MEASURE1_SUBOPERATION_TILLMAXFORCE, // 3
+			MEASURE1_SUBOPERATION_WAIT_1MIN,    // 4
+			MEASURE1_SUBOPERATION_TILLMINFORCE, // 5
+
+			/* MEASURE1 */
+			MEASURE2_SUBOPERATION_TILLSTARTMEASUREFORCE, // 3
+			MEASURE2_SUBOPERATION_TILLMAXFORCE, // 3
+			MEASURE2_SUBOPERATION_HOLDMAXFORCE,   // 4
+			MEASURE2_SUBOPERATION_TILLMINFORCE, // 5
 
 			/* MEASUREX */
-			MEASUREX_SUBOPERATION_X, // 4
+			MEASUREX_SUBOPERATION_X, // 6
 
 			/* PARK */
-			PARK_SUBOPERATION_INPROGRESS, // 5
+			PARK_SUBOPERATION_INPROGRESS, // 7
 
 			/* CALIBRATE */
-			CALIBRATE_SUBOPERATION_TILL_FORCE_MAX, // 6
-			CALIBRATE_SUBOPERATION_LOOSE, // 7
+			CALIBRATE_SUBOPERATION_TILL_FORCE_MAX, // 8
+			CALIBRATE_SUBOPERATION_LOOSE, // 9
 		};
 		Q_ENUMS(Suboperations)
+
+		/* measure phase */
+		enum MeasurePhases {
+			MEASURE_PHASE_NONE = 0,
+			MEASURE_PHASE_UP,
+			MEASURE_PHASE_HOLD,
+			MEASURE_PHASE_DOWN,
+		};
+		Q_ENUMS(MeasurePhases)
 
 signals:
 		void operationPropertyChanged(int newValue);
@@ -187,50 +325,39 @@ signals:
 		void measureUpdatedPropertyChanged(int newValue);
 		void measureStartedPropertyChanged(int newValue);
 		void measureIndexPropertyChanged(int newValue);
-		void calculatedPowerPropertyChanged(int newValue);
+		void measureUpIndexPropertyChanged(int newValue);
+		void measureHoldIndexPropertyChanged(int newValue);
+		void measureDownIndexPropertyChanged(int newValue);
+		void calculatedWorkUpPropertyChanged(int newValue);
+		void calculatedWorkHoldPropertyChanged(int newValue);
+		void calculatedWorkDownPropertyChanged(int newValue);
+		void measurePhasePropertyChanged(int newValue);
+		void maxMeasuredLengthPropertyChanged(float newValue);
+		void minMeasuredLengthPropertyChanged(float newValue);
+		void secondsCounterPropertyChanged(int newValue);
 
 		public slots:
 			void onTimeout() {
-				//qDebug() << "TensoSensor::onTimeout";
-				if (m_timerType == TIMER_TYPE_HOLD) {
-#if 0
-					qDebug() << "m_currentHoldTimer " << m_currentHoldTime;
-					if (m_currentHoldTime < m_holdTime) {
-						int val = m_currentHoldTime+1;
-						setCurrentHoldTimeProperty(val);
-					} else if (m_currentHoldTime == m_holdTime) {
-						int val = 0;
-						m_timerType = TIMER_TYPE_NONE;
-						setStartMeasureProperty(val);
-						qDebug() << "Stop";
-					}
-#endif
-				}
+				qDebug() << "m_secondsCounter " << m_secondsCounter;
+				if (m_secondsCounter > 0)
+					setSecondsCounterProperty(m_secondsCounter-1);
+				//m_secondsCounter++;
 			}
 
 		void onMeasureTimeout() {
 			qDebug() << "TensoSensor::onMeasureTimeout";
-#if 0
-			if (m_currentForce >= m_maxForce) {
-				qDebug() << "onMeasureTimeout: max force reached";
-				m_timerType = TIMER_TYPE_HOLD;
-			}
-			if (m_currentLength >= m_maxLength) {
-				qDebug() << "onMeasureTimeout: max length reached";
-				m_timerType = TIMER_TYPE_HOLD;
-			}
-			if (m_timerType == TIMER_TYPE_PULL) {
-				int val = m_currentLength+1;
-				setCurrentLengthProperty(val);
-				qDebug() << "onMeasureTimeout: PULLING force " << m_currentForce << " length " << m_currentLength;
-			}
-#endif
 		}
 
+	public:
 		void setZeroingLooseFlag(int loose) { m_zeroingLooseFlag = loose; }
 		int getZeroingLooseFlag() { return m_zeroingLooseFlag; }
 		void setSubOperationStarted(int started) { m_subOperationStarted = started; }
 		int getSubOperationStarted() { return m_subOperationStarted; }
+		int getMeasureUpIndex() { return m_measureUpIndex; }
+		int getMeasureHoldIndex() { return m_measureHoldIndex; }
+		int getMeasureDownIndex() { return m_measureDownIndex; }
+
+		void addStep2CmTableEntry(unsigned int steps, float cm) { steps2cm_table.insert(std::pair<unsigned int, float>(steps, cm)); }
 
 	public:
 		int m_last_move_val;
@@ -246,18 +373,31 @@ signals:
 		int m_maxLength;
 		int m_measureUpdated;
 		int m_measureStarted;
-		int m_calculatedPower;
+		int m_calculatedWorkUp;
+		int m_calculatedWorkHold;
+		int m_calculatedWorkDown;
 		int m_timerType;
+		int m_measureIndex;
+		int m_measureUpIndex;
+		int m_measureHoldIndex;
+		int m_measureDownIndex;
 
 		/* flags */
 		int m_zeroingLooseFlag;
 		int m_subOperationStarted;
 
-		int m_measureIndex;
+		int m_measurePhase;
 
-		std::map<int, int> position_values;
-		std::map<int, int> force_values;
+		float m_maxMeasuredLength;
+		float m_minMeasuredLength;
+		int m_secondsCounter;
 
+		std::map<int, signed int> position_values;
+		std::map<int, signed int> force_values;
+
+		std::map<unsigned int, float> steps2cm_table;
+
+/*
 			struct convertable {
 				unsigned int steps;
 				unsigned int mm;
@@ -277,6 +417,7 @@ signals:
 				{85011, 1415},
 				{90006, 1515}
 			};
+*/
 };
 
 #endif // __TENSOSENSOR_H__

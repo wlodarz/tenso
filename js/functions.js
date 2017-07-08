@@ -1,29 +1,34 @@
 
+function start_operation(op_title) {
+	console.log("start_operation "+op_title)
+	TensoSensor.operationcompleted = 0
+	parent.button_label = ""+op_title
+}
+
 function emergency_stop() {
 	console.log("Clicked STOP")
 
 	moving(0)
 	reporting(0)
+	config(0)
 
 	TensoSensor.operation = TensoSensor.SENSOR_OPERATION_STOP
-	TensoSensor.operationcompleted = 0
 	TensoSensor.suboperation = 0
+	start_operation("Stop")
 
 	zeroing_button.button_label = zeroing_button.button_label_default
 	test1_button.button_label = test1_button.button_label_default
 	test2_button.button_label = test2_button.button_label_default
+
+	mainwindow.focus = true
 }
 
 function measure1() {
-	console.log("Measure1 " + parent.activated)
+	console.log("MEASURE1")
 	if (TensoSensor.operation == 0) {
-		console.log("op: idle -> measure");
-		parent.button_label = "Measure"
 		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_MEASURE1
 		TensoSensor.suboperation = TensoSensor.MEASURE1_SUBOPERATION_TILLMAXFORCE
-		TensoSensor.operationcompleted = 0
-		canvas.forceArray.length = 0
-		canvas.lengthArray.length = 0
+		start_operation("Measure1")
 	}
 	else {
 		console.log("other state - do nothing")
@@ -31,17 +36,24 @@ function measure1() {
 }
 
 function measure2() {
-	console.log("Measure2 " + parent.activate)
+	console.log("MEASURE2")
+	if (TensoSensor.operation == 0) {
+		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_MEASURE2
+		TensoSensor.suboperation = TensoSensor.MEASURE2_SUBOPERATION_TILLSTARTMEASUREFORCE
+		start_operation("Measure2")
+	}
+	else {
+		console.log("other state - do nothing")
+	}
 }
 
 function calibrate() {
 	console.log("CALIBRATE")
 	if (TensoSensor.operation == 0) {
 		console.log("op: idle -> calibrate");
-		parent.button_label = "Calibrating"
 		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_CALIBRATE
-		TensoSensor.suboperation = TensoSensor.NONE_SUBOPERATION
-		TensoSensor.operationcompleted = 0
+		TensoSensor.suboperation = TensoSensor.CALIBRATE_SUBOPERATION_TILL_FORCE_MAX
+		start_operation("Calibrate")
 	}
 	else {
 		console.log("other state - do nothing")
@@ -49,11 +61,13 @@ function calibrate() {
 }
 
 function moving(on_off) {
+	console.log("MOVING")
 	if (on_off == 1) {
 		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_MOVE
 		TensoSensor.movedirection = 0
 		moving_widget.focus=true
 		moving_widget.visible=true
+		start_operation("Moving")
 	} else {
 		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_IDLE
 		moving_widget.focus=false
@@ -66,7 +80,7 @@ function parking() {
 		console.log("op: idle -> parking")
 		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_PARK
 		TensoSensor.suboperation = TensoSensor.PARK_SUBOPERATION_INPROGRESS
-		TensoSensor.operationcompleted = 0
+		start_operation("Parking")
 	}
 	if (TensoSensor.operation == TensoSensor.SENSOR_OPERATION_PARK && TensoSensor.operationcompleted == 1) {
 		console.log("op: parking -> idle")
@@ -78,7 +92,10 @@ function parking() {
 
 function zeroing() {
 	console.log("ZEROING")
-	TensoSensor.operation = TensoSensor.SENSOR_OPERATION_ZERO
+	if (TensoSensor.operation == TensoSensor.SENSOR_OPERATION_IDLE) {
+		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_ZERO
+		start_operation("Zeroing")
+	}
 }
 
 function move_left() {
@@ -93,8 +110,11 @@ function move_right() {
 
 function reporting(on_off) {
 	console.log("REPORT")
-	reporting_widget.steps = TensoSensor.measureIndex
-	reporting_widget.power = TensoSensor.calculatedPower
+	reporting_widget.stepsUp = TensoSensor.measureIndex
+	reporting_widget.workUp = TensoSensor.calculatedWorkUp
+	reporting_widget.workHold = TensoSensor.calculatedWorkHold
+	reporting_widget.workUpAndHold = TensoSensor.calculatedWorkUp + TensoSensor.calculatedWorkHold
+	reporting_widget.workDown = TensoSensor.calculatedWorkDown
 	if (on_off == 1) {
 		reporting_widget.focus=true
 		reporting_widget.visible=true
@@ -103,3 +123,15 @@ function reporting(on_off) {
 		reporting_widget.visible=false
 	}
 }
+
+function config(on_off) {
+	console.log("CONFIG")
+	if (on_off == 1) {
+		config_widget.focus=true
+		config_widget.visible=true
+	} else {
+		config_widget.focus=false
+		config_widget.visible=false
+	}
+}
+

@@ -8,8 +8,11 @@ Rectangle {
         border.color: "black"
         border.width: 3
         radius: 5
-	property int steps: 0
-	property int power: 0
+	property int stepsUp: 0
+	property int workUp: 0
+	property int workUpAndHold: 0
+	property int workHold: 0
+	property int workDown: 0
 	
         Text {
 		font.pointSize: 24
@@ -28,20 +31,59 @@ Rectangle {
 		font.pointSize: 16
 		anchors.left: parent.left
 		anchors.margins: 20
-        	text: "Power:"
+        	text: "WorkUp:"
+        }
+        Text {
+		y: 210
+		font.pointSize: 16
+		anchors.left: parent.left
+		anchors.margins: 20
+        	text: "WorkHold:"
+        }
+        Text {
+		y: 240
+		font.pointSize: 16
+		anchors.left: parent.left
+		anchors.margins: 20
+        	text: "WorkUpAndHold:"
+        }
+        Text {
+		y: 270
+		font.pointSize: 16
+		anchors.left: parent.left
+		anchors.margins: 20
+        	text: "WorkDown:"
         }
 
         Text {
 		y: 150
 		font.pointSize: 16
 		anchors.horizontalCenter: parent.horizontalCenter
-        	text: ""+steps
+        	text: ""+stepsUp
         }
         Text {
 		y: 180
 		font.pointSize: 16
 		anchors.horizontalCenter: parent.horizontalCenter
-        	text: ""+power
+        	text: ""+workUp
+        }
+        Text {
+		y: 210
+		font.pointSize: 16
+		anchors.horizontalCenter: parent.horizontalCenter
+        	text: ""+workHold
+        }
+        Text {
+		y: 240
+		font.pointSize: 16
+		anchors.horizontalCenter: parent.horizontalCenter
+        	text: ""+workUpAndHold
+        }
+        Text {
+		y: 270
+		font.pointSize: 16
+		anchors.horizontalCenter: parent.horizontalCenter
+        	text: ""+workDown
         }
 }
 
