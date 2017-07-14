@@ -13,7 +13,7 @@ Rectangle {
 	Counter {
 		id: counter
 		//visible: TensoSensor.Suboperation == TensoSensor.MEASURE2_SUBOPERATION_HOLDMAXFORCE
-		visible: true
+		visible: false
 		x: parent.menuWidth + 60
 		y: 20
 		counterValue: TensoSensor.secondsCounter

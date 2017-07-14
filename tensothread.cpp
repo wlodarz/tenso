@@ -476,10 +476,13 @@ void TensoThread::operationMeasure2()
 					m_sensor->setMeasureStartedProperty(0);
 					test_counter = 0;
 					m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED1_KEY));
+					//m_sensor->setMinMeasuredLengthProperty(0);
+					m_sensor->setMaxMeasuredLengthProperty(0);
 				} else {
 					if (m_tensometer->getForceValue() >= m_config->getConfigInt(MEASURE2_MINFORCE_KEY)) {
 						m_sensor->setSubOperationStarted(0);
 						m_sensor->setSubOperationProperty(TensoSensor::Suboperations::MEASURE2_SUBOPERATION_TILLMAXFORCE);
+						//m_sensor->setMinMeasuredLengthProperty(m_stepperengine->getCurrentPosition());
 					}
 				}
 			}
@@ -487,6 +490,8 @@ void TensoThread::operationMeasure2()
 		case TensoSensor::Suboperations::MEASURE2_SUBOPERATION_TILLMAXFORCE:
 			{
 				adaptSpeed();
+				if (m_stepperengine->getCurrentPosition() > m_sensor->maxMeasuredLengthProperty())
+						m_sensor->setMaxMeasuredLengthProperty(m_stepperengine->getCurrentPosition());
 
 				qDebug() << "Till Max Force";
 				if (m_sensor->getSubOperationStarted() == 0) {
@@ -585,6 +590,14 @@ void TensoThread::operationMeasure2()
 						float work = m_sensor->calculateWork(m_sensor->getMeasureDownIndex());
 						m_sensor->setCalculatedWorkDownProperty(work);
 						qDebug() << "WorkDown = " << m_sensor->calculatedWorkDownProperty();
+
+						float const1 = m_config->getConfigFloat(CONFIG_ROTATION_CONST1_KEY);
+						float const2 = m_config->getConfigFloat(CONFIG_ROTATION_CONST2_KEY);
+						float max_length = m_sensor->maxMeasuredLengthProperty(); // 310.0;
+						float min_length = m_sensor->minMeasuredLengthProperty(); // 33.0;
+						float turns = m_sensor->calculateTurns(const1, const2, max_length, min_length);
+						qDebug() << "Turns " << turns;
+						m_sensor->setTurnsProperty((int)turns);
 					}
 				}
 			}

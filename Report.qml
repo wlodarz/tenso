@@ -9,10 +9,11 @@ Rectangle {
         border.width: 3
         radius: 5
 	property int stepsUp: 0
-	property int workUp: 0
-	property int workUpAndHold: 0
-	property int workHold: 0
-	property int workDown: 0
+	property real workUp: 0.0
+	property real workUpAndHold: 0.0
+	property real workHold: 0.0
+	property real workDown: 0.0
+	property real turns: 0.0
 	
         Text {
 		font.pointSize: 24
@@ -54,6 +55,13 @@ Rectangle {
 		anchors.margins: 20
         	text: "WorkDown:"
         }
+        Text {
+		y: 300
+		font.pointSize: 16
+		anchors.left: parent.left
+		anchors.margins: 20
+        	text: "Turns:"
+        }
 
         Text {
 		y: 150
@@ -84,6 +92,12 @@ Rectangle {
 		font.pointSize: 16
 		anchors.horizontalCenter: parent.horizontalCenter
         	text: ""+workDown
+        }
+        Text {
+		y: 300
+		font.pointSize: 16
+		anchors.horizontalCenter: parent.horizontalCenter
+        	text: ""+turns
         }
 }
 
