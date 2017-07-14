@@ -465,9 +465,7 @@ void TensoThread::operationMeasure2()
 			{
 				adaptSpeed();
 
-				qDebug() << "Till StartMeasure Force";
 				if (m_sensor->getSubOperationStarted() == 0) {
-					qDebug() << "measure2 - till start force suboperation started";
 					m_stepperengine->on();
 					m_stepperengine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
 					m_stepperengine->start();
@@ -490,23 +488,19 @@ void TensoThread::operationMeasure2()
 		case TensoSensor::Suboperations::MEASURE2_SUBOPERATION_TILLMAXFORCE:
 			{
 				adaptSpeed();
-				if (m_stepperengine->getCurrentPosition() > m_sensor->maxMeasuredLengthProperty())
-						m_sensor->setMaxMeasuredLengthProperty(m_stepperengine->getCurrentPosition());
+				if (m_sensor->steps2cm(m_stepperengine->getCurrentPosition()) > m_sensor->maxMeasuredLengthProperty())
+						m_sensor->setMaxMeasuredLengthProperty(m_sensor->steps2cm(m_stepperengine->getCurrentPosition()));
 
-				qDebug() << "Till Max Force";
 				if (m_sensor->getSubOperationStarted() == 0) {
-					qDebug() << "measure2 - till max force suboperation started";
 					m_sensor->setSubOperationStarted(1);
 					m_sensor->setMeasureStartedProperty(1);
 					m_sensor->setMeasureIndexProperty(0);
 					test_counter = 0;
 					m_sensor->setMeasurePhaseProperty(TensoSensor::MeasurePhases::MEASURE_PHASE_UP);
 				} else {
-					qDebug() << "measure2 - till max force suboperation already in progress";
 
 					if (m_tensometer->getForceValue() >= m_config->getConfigInt(MEASURE2_HOLDFORCE_KEY)
 							|| m_stepperengine->getCurrentPosition() >= m_config->getConfigInt(LENGTH_MAX_KEY)) {
-						qDebug() << "till max force reached or lenght_full reached";
 						m_stepperengine->stop();
 						m_sensor->setSubOperationStarted(0);
 						m_sensor->setSubOperationProperty(TensoSensor::Suboperations::MEASURE2_SUBOPERATION_HOLDMAXFORCE);
@@ -520,7 +514,6 @@ void TensoThread::operationMeasure2()
 			break;
 		case TensoSensor::Suboperations::MEASURE2_SUBOPERATION_HOLDMAXFORCE:
 			{
-				qDebug() << "Hold Max Force";
 				if (m_sensor->getSubOperationStarted() == 0) {
 
 					/* start of the operation */
@@ -560,12 +553,9 @@ void TensoThread::operationMeasure2()
 
 		case TensoSensor::Suboperations::MEASURE2_SUBOPERATION_TILLMINFORCE:
 			{
-				qDebug() << "Till Min Force";
-
 				adaptSpeed();
 
 				if (m_sensor->getSubOperationStarted() == 0) {
-					qDebug() << "measure2 - till min force suboperation started";
 					m_stepperengine->on();
 					m_stepperengine->setTargetPosition(0);
 					m_stepperengine->start();
@@ -575,8 +565,6 @@ void TensoThread::operationMeasure2()
 					m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED5_KEY));
 					m_sensor->setMeasurePhaseProperty(TensoSensor::MeasurePhases::MEASURE_PHASE_DOWN);
 				} else {
-					qDebug() << "measure2 - till min force suboperation already in progress";
-
 					if (m_tensometer->getForceValue() <= m_config->getConfigInt(FORCE_MIN_KEY)
 							|| m_stepperengine->getCurrentPosition() <= 0) {
 						qDebug() << "till min force reached or 0 reached";

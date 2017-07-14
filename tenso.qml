@@ -12,8 +12,8 @@ Rectangle {
 
 	Counter {
 		id: counter
-		//visible: TensoSensor.Suboperation == TensoSensor.MEASURE2_SUBOPERATION_HOLDMAXFORCE
-		visible: false
+		//visible: (TensoSensor.Suboperation == TensoSensor.MEASURE2_SUBOPERATION_HOLDMAXFORCE) ? true : false
+		visible: true
 		x: parent.menuWidth + 60
 		y: 20
 		counterValue: TensoSensor.secondsCounter
@@ -184,6 +184,7 @@ Rectangle {
 				var len = TensoSensor.currentLength
 				var force = TensoSensor.currentForce
 				console.log("measure updated : length " + len + " force " + force)
+				console.log("suboperation " + TensoSensor.suboperation)
 				TensoSensor.measureUpdate = 0
 				switch (TensoSensor.measurePhase) {
 
@@ -203,6 +204,11 @@ Rectangle {
 						break
 				}
 				canvas.requestPaint()
+		
+				if (TensoSensor.Suboperation == TensoSensor.MEASURE2_SUBOPERATION_HOLDMAXFORCE)
+					Control.counting(1)
+				else
+					Control.counting(0)
 			}
 		}
 	}
