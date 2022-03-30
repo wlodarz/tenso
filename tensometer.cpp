@@ -1,53 +1,43 @@
 
 #include <stdio.h>
-#include <phidget21.h>
+#include <phidget22.h>
 #include <QDebug>
 #include "tensometer.hpp"
 
-static int CCONV AttachHandler(CPhidgetHandle phid, void *userptr)
+static void CCONV attachHandler(PhidgetHandle phid, void *userptr)
 {
+	PhidgetReturnCode result;
+	const char *err;
+
 	userptr = userptr;
 
-        CPhidgetBridgeHandle bridge = (CPhidgetBridgeHandle)phid;
+        PhidgetVoltageRatioInputHandle voltageRatioInput = (PhidgetVoltageRatioInputHandle)phid;
 
-        CPhidgetBridge_setEnabled(bridge, 0, PTRUE);
-        CPhidgetBridge_setEnabled(bridge, 1, PFALSE);
-        CPhidgetBridge_setEnabled(bridge, 2, PFALSE);
-        CPhidgetBridge_setEnabled(bridge, 3, PFALSE);
-
-        CPhidgetBridge_setGain(bridge, 0, PHIDGET_BRIDGE_GAIN_128);
-        CPhidgetBridge_setGain(bridge, 1, PHIDGET_BRIDGE_GAIN_16);
-        CPhidgetBridge_setGain(bridge, 2, PHIDGET_BRIDGE_GAIN_32);
-        CPhidgetBridge_setGain(bridge, 3, PHIDGET_BRIDGE_GAIN_64);
-        CPhidgetBridge_setDataRate(bridge, 100);
-
-        printf("Attach handler ran!\n");
-        return 0;
+        printf("Tensometer attached!\n");
+        return;
 }
 
-static int CCONV DetachHandler(CPhidgetHandle phid, void *userptr)
+static void CCONV detachHandler(PhidgetHandle phid, void *userptr)
 {
 	phid = phid;
 	userptr = userptr;
 
-        printf("Detach handler ran!\n");
-        return 0;
+        printf("Tensometer detached!\n");
+        return;
 }
 
-static int CCONV ErrorHandler(CPhidgetHandle phid, void *userptr, int ErrorCode, const char *errorStr)
+static void CCONV errorHandler(PhidgetHandle phid, void *userptr, Phidget_ErrorEventCode ErrorCode, const char *errorStr)
 {
 	phid = phid;
 	userptr = userptr;
 	ErrorCode = ErrorCode;
-        printf("Error event: %s\n",errorStr);
-        return 0;
+        printf("Tensometer error event: %s\n",errorStr);
+        return;
 }
 
-#define FREQS_SIZE 20
-//static double bridges[FREQS_SIZE] = {0};
-static int CCONV data(CPhidgetBridgeHandle phid, void *userPtr, int index, double val)
+static void CCONV dataHandler(PhidgetVoltageRatioInputHandle ch, void *ctx, double voltageRatio)
 {
-        //CPhidgetBridgeHandle bridge = (CPhidgetBridgeHandle)phid;
+        //PhidgetBridgeHandle bridge = (PhidgetBridgeHandle)phid;
         //double f;
 	//double ms;
         //int i;
@@ -55,20 +45,19 @@ static int CCONV data(CPhidgetBridgeHandle phid, void *userPtr, int index, doubl
         double offset = 0.002325;
         double weight;
 
-	phid = phid;
-	userPtr = userPtr;
-	index = index;
+	ch = ch;
 
-	Tensometer *tenso = (Tensometer *)userPtr;
+	Tensometer *tenso = (Tensometer *)ctx;
 
         //qDebug() << "Data Event (" << index << " " << val;
 
-        weight = K * ((val / 5.0) - offset);
-        //qDebug() << "Weight " << weight << "g";
+        weight = K * ((voltageRatio * 1000.0 / 5.0) - offset);
+        qDebug() << "Weight " << weight << "g";
+	//printf("voltageRatio %f weight %f\n", voltageRatio, weight);
 
 	tenso->setForceValue((int)weight);
 
-        return 0;
+        return;
 }
 
 
@@ -78,28 +67,36 @@ Tensometer::Tensometer()
 
 int Tensometer::init()
 {
-	const char *err;
-	int result;
-	CPhidgetBridgeHandle bridge;
-
+	int res;
 	m_forceValue = 0;
+	PhidgetReturnCode result;
+	const char *err;
 
-	CPhidgetBridge_create(&bridge);
+	PhidgetVoltageRatioInput_create(&voltageRatioInput);
 
-	CPhidget_set_OnAttach_Handler((CPhidgetHandle)bridge, AttachHandler, NULL);
-	CPhidget_set_OnDetach_Handler((CPhidgetHandle)bridge, DetachHandler, NULL);
-	CPhidget_set_OnError_Handler((CPhidgetHandle)bridge, ErrorHandler, NULL);
+	res = Phidget_setChannel((PhidgetHandle)voltageRatioInput, 0);
+	if (res != EPHIDGET_OK) {
+		qDebug() << "Problem setting channel";
+		return -1;
+	}
 
-	CPhidgetBridge_set_OnBridgeData_Handler(bridge, data, this);
+        PhidgetVoltageRatioInput_setBridgeEnabled(voltageRatioInput, PTRUE);
+        PhidgetVoltageRatioInput_setBridgeGain(voltageRatioInput, BRIDGE_GAIN_128);
+        PhidgetVoltageRatioInput_setDataRate(voltageRatioInput, 10);
+	PhidgetVoltageRatioInput_setVoltageRatioChangeTrigger(voltageRatioInput, 0.0);
 
-	CPhidget_open((CPhidgetHandle)bridge, -1);
-
-	//Wait for 10 seconds, otherwise exit
-	if((result = CPhidget_waitForAttachment((CPhidgetHandle)bridge, 1000))!=0) {
-        	CPhidget_getErrorDescription(result, &err);
+	if((result = Phidget_open((PhidgetHandle)voltageRatioInput))!=0) {
+        	Phidget_getErrorDescription(result, &err);
 		qDebug() << "Problem waiting for attachment:" << err;
 		return -1;
 	}
+
+	Phidget_setOnAttachHandler((PhidgetHandle)voltageRatioInput, attachHandler, this);
+	Phidget_setOnDetachHandler((PhidgetHandle)voltageRatioInput, detachHandler, this);
+	Phidget_setOnErrorHandler((PhidgetHandle)voltageRatioInput, errorHandler, this);
+
+	PhidgetVoltageRatioInput_setOnVoltageRatioChangeHandler(voltageRatioInput, dataHandler, this);
+
 	return 0;
 }
 

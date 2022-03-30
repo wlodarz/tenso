@@ -1,7 +1,7 @@
 #ifndef __STEPPERENGINE_H__
 #define __STEPPERENGINE_H__
 
-#include <phidget21.h>
+#include <phidget22.h>
 
 class StepperEngine {
 public:
@@ -14,14 +14,14 @@ public:
 	void stop();
 	void off();
 	void on();
-	void setCurrentPosition(__int64 position); // { m_stepValue = step; }
-	void setTargetPosition(__int64 position); // { m_stepValue = step; }
-	__int64 getCurrentPosition();
+	void setCurrentPosition(qint64 position); // { m_stepValue = step; }
+	void setTargetPosition(qint64 position); // { m_stepValue = step; }
+	qint64 getCurrentPosition();
 	void setVelocity(int velocity); // { m_stepValue = step; }
 	void setConnected(int connected) { m_connected = connected; }
 	int getConnected() { return m_connected; }
-	//void setPosition(__int64 position) { m_position = position; }
-	//__int64 getPosition() { return m_position; }
+	//void setPosition(qint64 position) { m_position = position; }
+	//qint64 getPosition() { return m_position; }
 	void loose();
 	int checkConnected();
 	int waitTillEngineStopped();
@@ -37,14 +37,14 @@ public:
 	void setVelocityLimit(int limit);
 
 private:
-	__int64 m_position;
+	qint64 m_position;
 	int m_velocity;
 	int m_connected;			/* 0 - engine not connected, 1 - engine connected */
 	int m_loosen_delta;
 	int m_direction; // if position is added from start to max, this flag should be 1, otherwise 0
 	int m_maxspeeddiv; // div
 	int m_minspeeddiv; // div
-	CPhidgetStepperHandle m_stepper;
+	PhidgetStepperHandle m_stepper;
 
 	double minAccel, maxAccel, maxVel;
 };

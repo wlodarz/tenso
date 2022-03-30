@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <phidget21.h>
+#include <phidget22.h>
 #include <QDebug>
 
 #include "config.hpp"
@@ -10,38 +10,38 @@
 #include "stepperengine.hpp"
 
 
-static int CCONV AttachHandler(CPhidgetHandle stepper, void *userptr)
+static void CCONV attachHandler(PhidgetHandle stepper, void *userptr)
 {
         int serialNo;
         const char *name;
 	StepperEngine *engine = (StepperEngine *)userptr;
 
-        CPhidget_getDeviceName (stepper, &name);
-        CPhidget_getSerialNumber(stepper, &serialNo);
-        printf("%s %10d attached!\n", name, serialNo);
+        //Phidget_getDeviceName (stepper, &name);
+        //Phidget_getSerialNumber(stepper, &serialNo);
+        //printf("%s %10d attached!\n", name, serialNo);
 	engine->setConnected(1);
-	//engine->setPosition(engine->getCurrentPosition());
+	//engine->setPosition(engine->getPosition());
 
-        return 0;
+        return;
 }
 
-static int CCONV DetachHandler(CPhidgetHandle stepper, void *userptr)
+static void CCONV detachHandler(PhidgetHandle stepper, void *userptr)
 {
         int serialNo;
         const char *name;
 	StepperEngine *engine = (StepperEngine *)userptr;
 
 
-        CPhidget_getDeviceName (stepper, &name);
-        CPhidget_getSerialNumber(stepper, &serialNo);
-        printf("%s %10d detached!\n", name, serialNo);
+        //Phidget_getDeviceName (stepper, &name);
+        //Phidget_getSerialNumber(stepper, &serialNo);
+        //printf("%s %10d detached!\n", name, serialNo);
 	engine->setConnected(0);
 	
 
-        return 0;
+        return;
 }
 
-static int CCONV ErrorHandler(CPhidgetHandle stepper, void *userptr, int ErrorCode, const char *errorStr)
+static void CCONV errorHandler(PhidgetHandle stepper, void *userptr, Phidget_ErrorEventCode ErrorCode, const char *errorStr)
 {
 	StepperEngine *engine = (StepperEngine *)userptr;
 
@@ -49,20 +49,18 @@ static int CCONV ErrorHandler(CPhidgetHandle stepper, void *userptr, int ErrorCo
 	stepper = stepper;
         printf("Error handled. %d - %s\n", ErrorCode, errorStr);
 
-        return 0;
+        return;
 }
 
-int CCONV PositionChangeHandler(CPhidgetStepperHandle stepper, void *userptr, int Index, __int64 Value)
+void CCONV positionChangeHandler(PhidgetStepperHandle ch, void *ctx, double Value)
 {
-	StepperEngine *engine = (StepperEngine *)userptr;
-	stepper = stepper;
-	Index = Index;
-	engine = engine;
+	StepperEngine *engine = (StepperEngine *)ctx;
+	ch = ch;
 	Value = Value;
         //qDebug() << "Motor: " << Index << " Current Position: " << Value;
 	//engine->setPosition(Value);
 
-        return 0;
+        return;
 }
 
 StepperEngine::StepperEngine()
@@ -74,59 +72,62 @@ StepperEngine::~StepperEngine() {}
 int StepperEngine::init()
 {
 	const char *err;
-	int result;
-	//CPhidgetStepperHandle stepper = 0;
+	PhidgetReturnCode result;
 
 	m_position = 0;
 	m_connected = 0;
 	m_maxspeeddiv = 100000;
+	double currentPosition;
 
-	CPhidgetStepper_create(&m_stepper);
+	PhidgetStepper_create(&m_stepper);
+	Phidget_setChannel((PhidgetHandle)m_stepper, PHIDGET_CHANNEL_ANY);
 
-	CPhidget_set_OnAttach_Handler((CPhidgetHandle)m_stepper, AttachHandler, this);
-	CPhidget_set_OnDetach_Handler((CPhidgetHandle)m_stepper, DetachHandler, this);
-	CPhidget_set_OnError_Handler((CPhidgetHandle)m_stepper, ErrorHandler, this);
-	CPhidgetStepper_set_OnPositionChange_Handler(m_stepper, PositionChangeHandler, this);
-
-	CPhidget_open((CPhidgetHandle)m_stepper, -1);
+	Phidget_setOnAttachHandler((PhidgetHandle)m_stepper, attachHandler, this);
+	Phidget_setOnDetachHandler((PhidgetHandle)m_stepper, detachHandler, this);
+	Phidget_setOnErrorHandler((PhidgetHandle)m_stepper, errorHandler, this);
+	PhidgetStepper_setOnPositionChangeHandler(m_stepper, positionChangeHandler, this);
 
 	//Wait for 10 seconds, otherwise exit
-	if((result = CPhidget_waitForAttachment((CPhidgetHandle)m_stepper, 1000))!=0) {
-        	CPhidget_getErrorDescription(result, &err);
+	if((result = Phidget_openWaitForAttachment((PhidgetHandle)m_stepper, 1000))!=0) {
+        	Phidget_getErrorDescription(result, &err);
 		qDebug() << "Problem waiting for attachment:" << err;
 		return -1;
 	}
 
-	CPhidgetStepper_getAccelerationMin(m_stepper, 0, &minAccel);
-	CPhidgetStepper_getAccelerationMax(m_stepper, 0, &maxAccel);
-	CPhidgetStepper_getVelocityMax(m_stepper, 0, &maxVel);
+	PhidgetStepper_getMinAcceleration(m_stepper, &minAccel);
+	PhidgetStepper_getMaxAcceleration(m_stepper, &maxAccel);
+	PhidgetStepper_getMaxVelocityLimit(m_stepper, &maxVel);
 
-	//CPhidgetStepper_setAcceleration(m_stepper, 0, minAccel*100);
-	//CPhidgetStepper_setAcceleration(m_stepper, 0, maxAccel/250);
-	CPhidgetStepper_setAcceleration(m_stepper, 0, maxAccel/10000);
-        CPhidgetStepper_setVelocityLimit(m_stepper, 0, maxVel/m_maxspeeddiv);
+	//PhidgetStepper_setAcceleration(m_stepper, minAccel*100);
+	//PhidgetStepper_setAcceleration(m_stepper, maxAccel/250);
+	PhidgetStepper_setAcceleration(m_stepper, maxAccel/10000);
+        PhidgetStepper_setVelocityLimit(m_stepper, maxVel/m_maxspeeddiv);
 
-	CPhidgetStepper_setCurrentPosition(m_stepper, 0, 0);
+	PhidgetStepper_getPosition(m_stepper, &currentPosition);
+	PhidgetStepper_addPositionOffset(m_stepper, -1 * currentPosition);
 
-        CPhidgetStepper_setEngaged(m_stepper, 0, 0);
+        PhidgetStepper_setEngaged(m_stepper, 0);
 
 	double currentMax, currentLimit;
-	CPhidgetStepper_getCurrentMax(m_stepper, 0, &currentMax);
-	//CPhidgetStepper_getCurrentLimit(m_stepper, 0, &currentLimit);
 	currentLimit = 4.0;
-	CPhidgetStepper_setCurrentLimit(m_stepper, 0, currentLimit);
-	CPhidgetStepper_getCurrentLimit(m_stepper, 0, &currentLimit);
+
+	PhidgetStepper_getMaxCurrentLimit(m_stepper, &currentMax);
+
+	PhidgetStepper_setCurrentLimit(m_stepper, currentLimit);
+	PhidgetStepper_getCurrentLimit(m_stepper, &currentLimit);
 	qDebug() << "CURRENT MAX " << currentMax;
 	qDebug() << "CURRENT LIMIT " << currentLimit;
 	qDebug() << "MAX Velocity " << maxVel;
+	printf("max velocity %f maxAccel %f m_maxspeeddiv %d\n", maxVel, maxAccel, m_maxspeeddiv);
+	printf("max current %f current %f\n", currentMax, currentLimit);
 
 
 #if 0
-	CPhidgetStepper_setTargetPosition (m_stepper, 0, 0);
+	PhidgetStepper_setTargetPosition (m_stepper, 0);
 	stopped = PFALSE;
         while(!stopped)
         {
-                CPhidgetStepper_getStopped(m_stepper, 0, &stopped);
+                PhidgetStepper_getIsMoving(m_stepper, &stopped);
                 sleep(1);
         }
 #endif
@@ -143,7 +144,7 @@ void StepperEngine::start()
 	qDebug() << "StepperEngine::start() m_minspeeddiv " << m_minspeeddiv;
 
 	if (checkConnected() < 0) return;
-        CPhidgetStepper_setVelocityLimit(m_stepper, 0, speed_limit);
+        PhidgetStepper_setVelocityLimit(m_stepper, speed_limit);
 }
 
 void StepperEngine::stop()
@@ -152,9 +153,9 @@ void StepperEngine::stop()
 
 	if (checkConnected() < 0) return;
 
-        CPhidgetStepper_setVelocityLimit(m_stepper, 0, 0);
+        PhidgetStepper_setVelocityLimit(m_stepper, 0);
 	setTargetPosition(getCurrentPosition());
-        //CPhidgetStepper_setVelocityLimit(m_stepper, 0, maxVel/m_maxspeeddiv);
+        //PhidgetStepper_setVelocityLimit(m_stepper, maxVel/m_maxspeeddiv);
 }
 
 void StepperEngine::loose()
@@ -176,7 +177,7 @@ void StepperEngine::on()
 	qDebug() << "StepperEngine::on()";
 
 	if (checkConnected() < 0) return;
-        CPhidgetStepper_setEngaged(m_stepper, 0, 1);
+        PhidgetStepper_setEngaged(m_stepper, 1);
 }
 
 void StepperEngine::off()
@@ -184,26 +185,28 @@ void StepperEngine::off()
 	qDebug() << "StepperEngine::off()";
 
 	if (checkConnected() < 0) return;
-        CPhidgetStepper_setEngaged(m_stepper, 0, 0);
+        PhidgetStepper_setEngaged(m_stepper, 0);
 }
 
-void StepperEngine::setCurrentPosition(__int64 position)
+void StepperEngine::setCurrentPosition(qint64 position)
 {
+	double currentPosition;
 	qDebug() << "StepperEngine::setCurrentPosition()";
 
 	if (checkConnected() < 0) return;
-	CPhidgetStepper_setCurrentPosition (m_stepper, 0, position);
+	PhidgetStepper_getPosition(m_stepper, &currentPosition);
+	PhidgetStepper_addPositionOffset(m_stepper, -1 * currentPosition);
 }
 
-void StepperEngine::setTargetPosition(__int64 position)
+void StepperEngine::setTargetPosition(qint64 position)
 {
 	qDebug() << "StepperEngine::setTargetPosition() " << position;
 
 	if (checkConnected() < 0) return;
-	CPhidgetStepper_setTargetPosition (m_stepper, 0, position);
+	PhidgetStepper_setTargetPosition (m_stepper, position);
 }
 
-__int64 StepperEngine::getCurrentPosition()
+qint64 StepperEngine::getCurrentPosition()
 {
 	//qDebug() << "StepperEngine::getCurrentPosition()";
 #if TEST_ENGINE
@@ -212,11 +215,11 @@ __int64 StepperEngine::getCurrentPosition()
 	position %= 1000;
 	return position;
 #else
-	__int64 curr_pos;
+	double curr_pos;
 
 	if (checkConnected() < 0) return -1;
 
-	if(CPhidgetStepper_getCurrentPosition(m_stepper, 0, &curr_pos) == EPHIDGET_OK)	
+	if(PhidgetStepper_getPosition(m_stepper, &curr_pos) == EPHIDGET_OK)	
 		return curr_pos;
 	return -1;
 #endif
@@ -237,10 +240,10 @@ int StepperEngine::waitTillEngineStopped()
 
         while(!stopped)
         {
-                CPhidgetStepper_getStopped(m_stepper, 0, &stopped);
+                PhidgetStepper_getIsMoving(m_stepper, &stopped);
                 sleep(1);
         }
-        CPhidgetStepper_setVelocityLimit(m_stepper, 0, 0);
+        PhidgetStepper_setVelocityLimit(m_stepper, 0);
 
 	return 0;
 }
@@ -248,7 +251,7 @@ int StepperEngine::waitTillEngineStopped()
 int StepperEngine::isEngineStopped()
 {
 	int stopped = 0;
-	CPhidgetStepper_getStopped(m_stepper, 0, &stopped);
+	PhidgetStepper_getIsMoving(m_stepper, &stopped);
 #if TEST_ENGINE
 	stopped = random() % 2;
 #endif
@@ -258,7 +261,7 @@ int StepperEngine::isEngineStopped()
 void StepperEngine::setVelocityLimit(int limit)
 {
 	m_maxspeeddiv = limit;
-        CPhidgetStepper_setVelocityLimit(m_stepper, 0, maxVel / limit);
+        PhidgetStepper_setVelocityLimit(m_stepper, maxVel / limit);
 	//qDebug() << "speed " << maxVel / limit;
 }
 

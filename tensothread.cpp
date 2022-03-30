@@ -14,7 +14,7 @@
 
 #include <stdlib.h>
 
-#include <phidget21.h>
+#include <phidget22.h>
 
 #include "config.hpp"
 

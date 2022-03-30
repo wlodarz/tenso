@@ -1,6 +1,7 @@
 #ifndef __TENSOMETER_H__
 #define __TENSOMETER_H__
 
+#include <phidget22.h>
 #include <stdlib.h>
 
 class Tensometer {
@@ -17,6 +18,7 @@ public:
 
 private:
 	int m_forceValue;
+	PhidgetVoltageRatioInputHandle voltageRatioInput;
 };
 
 

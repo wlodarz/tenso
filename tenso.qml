@@ -180,7 +180,7 @@ Rectangle {
 
 		Connections {
 			target: TensoSensor
-			onMeasureUpdatedChanged: {
+			function onMeasureUpdatedChanged() {
 				var len = TensoSensor.currentLength
 				var force = TensoSensor.currentForce
 				console.log("measure updated : length " + len + " force " + force)
