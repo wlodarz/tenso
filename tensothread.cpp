@@ -31,6 +31,7 @@ int TensoThread::init(TensoSensor *sensor)
   	m_config = new TensoConfig();
 	m_tensometer = new Tensometer();
 	m_stepperengine = new StepperEngine();
+	m_encoder = new Encoder();
 
 	m_sensor = sensor;
 
@@ -56,6 +57,11 @@ int TensoThread::init(TensoSensor *sensor)
 		qDebug() << "tensometer";
 		return -3;
 #endif
+	}
+
+	if (m_encoder->init() < 0) {
+		qDebug() << "encoder";
+		return -4;
 	}
 
 	configure();

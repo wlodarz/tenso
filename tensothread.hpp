@@ -7,6 +7,7 @@
 #include "tensometer.hpp"
 #include "stepperengine.hpp"
 #include "tensoconfig.hpp"
+#include "encoder.hpp"
 
 class TensoSensor;
 
@@ -42,6 +43,7 @@ private:
   TensoSensor *m_sensor;
   Tensometer *m_tensometer;
   StepperEngine *m_stepperengine;
+  Encoder *m_encoder;
 
   int test_counter;
 };
