@@ -1,5 +1,8 @@
-import QtQuick 2.4
+import QtQuick 2.6
+import QtQuick.Controls 1.4
 import TensoSensor 1.0
+
+import "js/functions.js" as Control
 
 Rectangle {
 	width: 800
@@ -14,6 +17,8 @@ Rectangle {
 	property real workHold: 0.0
 	property real workDown: 0.0
 	property real turns: 0.0
+	property int buttonWidth: 100
+	property int buttonHeight: 60
 	
         Text {
 		font.pointSize: 24
@@ -99,5 +104,34 @@ Rectangle {
 		anchors.horizontalCenter: parent.horizontalCenter
         	text: ""+turns
         }
+
+        TensoButton {
+                id: save_button
+                button_label_default: "Save"
+		button_label: button_label_default
+                x: parent.width / 2 - 100
+                y: parent.height - 100
+                property string action_text: "save"
+                property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_SAVE_REPORT
+                MouseArea {
+                        anchors.fill: parent
+                        onClicked: Control.save_report()
+                }
+        }
+
+        TensoButton {
+                id: discard_button
+                button_label_default: "Discard"
+		button_label: button_label_default
+                x: parent.width / 2 + 100
+                y: parent.height - 100
+                property string action_text: "discard"
+                property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_DISCARD_REPORT
+                MouseArea {
+                        anchors.fill: parent
+                        onClicked: Control.discard_report()
+                }
+        }
+
 }
 

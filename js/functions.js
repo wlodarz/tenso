@@ -2,7 +2,7 @@
 function start_operation(op_title) {
 	console.log("start_operation "+op_title)
 	TensoSensor.operationcompleted = 0
-	parent.button_label = ""+op_title
+	// parent.button_label = ""+op_title
 }
 
 function emergency_stop() {
@@ -148,5 +148,13 @@ function counting(on_off) {
 		counter.focus=false
 		counter.visible=false
 	}
+}
+
+function save_report() {
+	console.log("Saving report")
+}
+
+function discard_report() {
+	console.log("Discarding report")
 }
 

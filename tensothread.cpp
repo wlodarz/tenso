@@ -453,6 +453,8 @@ void TensoThread::operationMeasure1()
 						float work = m_sensor->calculateWork(m_sensor->getMeasureDownIndex());
 						m_sensor->setCalculatedWorkDownProperty(work);
 						qDebug() << "POWER = " << m_sensor->calculatedWorkDownProperty();
+
+#warning TODO: save calculated values
 					}
 				}
 			}
@@ -592,6 +594,7 @@ void TensoThread::operationMeasure2()
 						float turns = m_sensor->calculateTurns(const1, const2, max_length, min_length);
 						qDebug() << "Turns " << turns;
 						m_sensor->setTurnsProperty((int)turns);
+#warning TODO: save calculated values
 					}
 				}
 			}

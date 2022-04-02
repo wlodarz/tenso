@@ -7,6 +7,6 @@ HEADERS += tensosensor.hpp tensothread.hpp tensometer.hpp stepperengine.hpp tens
 LIBS += -lphidget22
 
 target.path = /opt/tenso
-qml.files = tenso.qml content
+qml.files = tenso.qml Config.qml  Counter.qml  error1.qml  error2.qml  error3.qml  Moving.qml  Report.qml  TensoButton.qml  TensoField.qml  TensoInputField.qml content
 qml.path = /opt/tenso
 INSTALLS += target qml
