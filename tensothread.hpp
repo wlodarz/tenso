@@ -31,8 +31,10 @@ private:
   void operationCalibrate();
 
   void adaptSpeed();
-
   int parseConvertLine(QString line);
+
+  void saveReportToFile(QString csvFileName);
+  void saveSamplesToFile(QString csvFileName, int numberOfSamples);
 
 public slots:
   void onTimeout();

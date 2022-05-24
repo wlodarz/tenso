@@ -37,6 +37,7 @@
 #define MEASURE2_MINFORCE_KEY "measure2.minforce"
 #define CONFIG_ROTATION_CONST1_KEY "config.rotation.const1"
 #define CONFIG_ROTATION_CONST2_KEY "config.rotation.const2"
+#define GOSTART_OFFSET "gostart.offset"
 
 
 class TensoConfig //: public QThread

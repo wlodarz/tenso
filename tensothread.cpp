@@ -164,13 +164,40 @@ void TensoThread::testFunction()
 #if TEST_TENSOMETER
 	int v = m_config->getConfigInt(LENGTH_100CM_KEY) / 2;
 	//int force = m_stepperengine->getCurrentPosition() * m_config->getConfigInt(FORCE_MAX_KEY) / v;
-	int force = test_counter * m_config->getConfigInt(FORCE_MAX_KEY) / v;
+	int force = test_counter * 20 * m_config->getConfigInt(FORCE_MAX_KEY) / v;
 
 	//qDebug() << "test_counter " << test_counter;
 	m_tensometer->setForceValue(force);
 #endif
 
 	return;
+}
+
+void TensoThread::saveReportToFile(QString csvFileName)
+{
+	QFile csvFile(csvFileName);
+	if (!csvFile.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+
+	QTextStream csvFileStream(&csvFile);
+	csvFileStream << "WorkUp,WorkHold,WorkDown" << Qt::endl;
+	csvFileStream << m_sensor->calculatedWorkUpProperty() 
+		      << "," << m_sensor->calculatedWorkHoldProperty()
+		      << "," << m_sensor->calculatedWorkDownProperty()
+		      << Qt::endl;
+}
+
+void TensoThread::saveSamplesToFile(QString csvFileName, int numberOfSamples)
+{
+	QFile csvFile(csvFileName);
+	if (!csvFile.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+
+	QTextStream csvFileStream(&csvFile);
+	csvFileStream << "Force,Length" << Qt::endl;
+	for(int sample=0; sample < numberOfSamples; sample++) {
+		float force = m_sensor->getForceSample(sample);
+		float distance = m_sensor->getDistanceSample(sample);
+		csvFileStream << force << "," << distance << Qt::endl;
+	}
 }
 
 void TensoThread::onControlTimeout()
@@ -197,6 +224,12 @@ void TensoThread::onControlTimeout()
 		{
 			//qDebug() << "SENSOR_OPERATION_IDLE";
 			m_sensor->setMeasureStartedProperty(0);
+			if (m_sensor->saveReportFlagProperty()) {
+				qDebug() << "Saving report from tensothread";
+				QString csvFileName = m_sensor->lotIdProperty() + ".csv";
+				saveReportToFile(csvFileName);
+				m_sensor->setSaveReportFlagProperty(0);
+			}
 		}
 		break;
 
@@ -252,15 +285,16 @@ void TensoThread::onControlTimeout()
 		}
 		break;
 
-		case TensoSensor::Operations::SENSOR_OPERATION_PARK:
+		case TensoSensor::Operations::SENSOR_OPERATION_GOSTART:
 		{
 			adaptSpeed();
 
 			if (m_sensor->getSubOperationStarted() == 0) {
+				int gostart_offset = m_config->getConfigInt(GOSTART_OFFSET);
 				// stop should be removed???
 				m_stepperengine->stop();
 				m_sensor->setSubOperationStarted(1);
-				m_stepperengine->setTargetPosition(0);
+				m_stepperengine->setTargetPosition(gostart_offset);
 				// setting velocity should be removed??? - velocity should came from adaptSpeed only!?!?!
 				m_stepperengine->setVelocityLimit(50);
 			} else {
@@ -396,6 +430,9 @@ void TensoThread::operationMeasure1()
 
 						float work = m_sensor->calculateWork(m_sensor->getMeasureUpIndex());
 						m_sensor->setCalculatedWorkUpProperty(work);
+
+						QString csvFileName = m_sensor->lotIdProperty() + "_samplesUp.csv";
+						saveSamplesToFile(csvFileName, m_sensor->getMeasureUpIndex());
 						/*
 						qDebug() << "WorkUp = " << m_sensor->calculatedWorkUpProperty();
 						qDebug() << "WorkHold = " << m_sensor->calculatedWorkHoldProperty();
@@ -454,7 +491,8 @@ void TensoThread::operationMeasure1()
 						m_sensor->setCalculatedWorkDownProperty(work);
 						qDebug() << "POWER = " << m_sensor->calculatedWorkDownProperty();
 
-#warning TODO: save calculated values
+						QString csvFileName = m_sensor->lotIdProperty() + "_samplesDown.csv";
+						saveSamplesToFile(csvFileName, m_sensor->getMeasureDownIndex());
 					}
 				}
 			}
@@ -516,6 +554,8 @@ void TensoThread::operationMeasure2()
 						float work = m_sensor->calculateWork(m_sensor->getMeasureUpIndex());
 						m_sensor->setCalculatedWorkUpProperty(work);
 						qDebug() << "WorkUp = " << m_sensor->calculatedWorkUpProperty();
+						QString csvFileName = m_sensor->lotIdProperty() + "_samplesUp.csv";
+						saveSamplesToFile(csvFileName, m_sensor->getMeasureUpIndex());
 					}
 				}
 			}
@@ -540,6 +580,8 @@ void TensoThread::operationMeasure2()
 						float work = m_sensor->calculateWork(m_sensor->getMeasureHoldIndex());
 						m_sensor->setCalculatedWorkHoldProperty(work);
 						qDebug() << "WorkHold = " << m_sensor->calculatedWorkHoldProperty();
+						QString csvFileName = m_sensor->lotIdProperty() + "_samplesHold.csv";
+						saveSamplesToFile(csvFileName, m_sensor->getMeasureHoldIndex());
 					} else {
 						if (m_tensometer->getForceValue() >= m_config->getConfigInt(MEASURE2_HOLDFORCE_KEY)
 								|| m_stepperengine->getCurrentPosition() >= m_config->getConfigInt(LENGTH_MAX_KEY)) {
@@ -587,6 +629,9 @@ void TensoThread::operationMeasure2()
 						m_sensor->setCalculatedWorkDownProperty(work);
 						qDebug() << "WorkDown = " << m_sensor->calculatedWorkDownProperty();
 
+						QString csvFileName = m_sensor->lotIdProperty() + "_samplesDown.csv";
+						saveSamplesToFile(csvFileName, m_sensor->getMeasureDownIndex());
+
 						float const1 = m_config->getConfigFloat(CONFIG_ROTATION_CONST1_KEY);
 						float const2 = m_config->getConfigFloat(CONFIG_ROTATION_CONST2_KEY);
 						float max_length = m_sensor->maxMeasuredLengthProperty(); // 310.0;
@@ -594,7 +639,6 @@ void TensoThread::operationMeasure2()
 						float turns = m_sensor->calculateTurns(const1, const2, max_length, min_length);
 						qDebug() << "Turns " << turns;
 						m_sensor->setTurnsProperty((int)turns);
-#warning TODO: save calculated values
 					}
 				}
 			}

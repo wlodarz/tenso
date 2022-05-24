@@ -78,15 +78,15 @@ function moving(on_off) {
 	}
 }
 
-function parking() {
+function gostart() {
 	if (TensoSensor.operation == TensoSensor.SENSOR_OPERATION_IDLE) {
-		console.log("op: idle -> parking")
-		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_PARK
-		TensoSensor.suboperation = TensoSensor.PARK_SUBOPERATION_INPROGRESS
-		start_operation("Parking")
+		console.log("op: idle -> gostart")
+		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_GOSTART
+		TensoSensor.suboperation = TensoSensor.GOSTART_SUBOPERATION_INPROGRESS
+		start_operation("GoStart")
 	}
-	if (TensoSensor.operation == TensoSensor.SENSOR_OPERATION_PARK && TensoSensor.operationcompleted == 1) {
-		console.log("op: parking -> idle")
+	if (TensoSensor.operation == TensoSensor.SENSOR_OPERATION_GOSTART && TensoSensor.operationcompleted == 1) {
+		console.log("op: gostart -> idle")
 		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_IDLE 
 		TensoSensor.suboperation = NONE_SUBOPERATION
 		TensoSensor.operationcompleted = 0
@@ -113,18 +113,20 @@ function move_right() {
 
 function reporting(on_off) {
 	console.log("REPORT")
-	reporting_widget.stepsUp = TensoSensor.measureIndex
-	reporting_widget.workUp = TensoSensor.calculatedWorkUp
-	reporting_widget.workHold = TensoSensor.calculatedWorkHold
-	reporting_widget.workUpAndHold = TensoSensor.calculatedWorkUp + TensoSensor.calculatedWorkHold
-	reporting_widget.workDown = TensoSensor.calculatedWorkDown
-	reporting_widget.turns = TensoSensor.turns
-	if (on_off == 1) {
-		reporting_widget.focus=true
-		reporting_widget.visible=true
-	} else {
-		reporting_widget.focus=false
-		reporting_widget.visible=false
+	if (TensoSensor.operation == TensoSensor.SENSOR_OPERATION_IDLE) {
+		reporting_widget.stepsUp = TensoSensor.measureIndex
+		reporting_widget.workUp = TensoSensor.calculatedWorkUp
+		reporting_widget.workHold = TensoSensor.calculatedWorkHold
+		reporting_widget.workUpAndHold = TensoSensor.calculatedWorkUp + TensoSensor.calculatedWorkHold
+		reporting_widget.workDown = TensoSensor.calculatedWorkDown
+		reporting_widget.turns = TensoSensor.turns
+		if (on_off == 1) {
+			reporting_widget.focus=true
+			reporting_widget.visible=true
+		} else {
+			reporting_widget.focus=false
+			reporting_widget.visible=false
+		}
 	}
 }
 
@@ -152,9 +154,14 @@ function counting(on_off) {
 
 function save_report() {
 	console.log("Saving report")
+	TensoSensor.saveReportFlag=1
+	reporting_widget.focus=false
+	reporting_widget.visible=false
 }
 
 function discard_report() {
 	console.log("Discarding report")
+	reporting_widget.focus=false
+	reporting_widget.visible=false
 }
 

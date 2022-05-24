@@ -55,6 +55,8 @@ class TensoSensor : public QObject {
 		Q_PROPERTY(int secondsCounter READ secondsCounterProperty WRITE setSecondsCounterProperty NOTIFY secondsCounterPropertyChanged)
 		Q_PROPERTY(float turns READ turnsProperty WRITE setTurnsProperty NOTIFY turnsPropertyChanged)
 		Q_PROPERTY(float startingLength READ startingLengthProperty WRITE setStartingLengthProperty NOTIFY startingLengthPropertyChanged)
+		Q_PROPERTY(int saveReportFlag READ saveReportFlagProperty WRITE setSaveReportFlagProperty NOTIFY saveReportFlagPropertyChanged)
+		Q_PROPERTY(QString lotId READ lotIdProperty WRITE setLotIdProperty NOTIFY lotIdPropertyChanged)
 
 	public:
 		TensoSensor(QObject *parent = 0) : QObject(parent),
@@ -81,7 +83,9 @@ class TensoSensor : public QObject {
 		m_minMeasuredLength(0.0),
 		m_secondsCounter(0),
 		m_turns(0),
-		m_startingLength(36.0)
+		m_startingLength(36.0),
+		m_saveReportFlag(0),
+		m_lotId("testLot")
 	{}
 		~TensoSensor() {}
 
@@ -140,6 +144,12 @@ class TensoSensor : public QObject {
 		float startingLengthProperty() const { qDebug() << "startingLength get"; return m_startingLength; }
 		void setStartingLengthProperty(float val) { m_startingLength = val; emit startingLengthPropertyChanged(val); }
 
+		int saveReportFlagProperty() const { return m_saveReportFlag; }
+		void setSaveReportFlagProperty(int val) { m_saveReportFlag = val; emit saveReportFlagPropertyChanged(val); }
+
+		QString lotIdProperty() const { return m_lotId; }
+		void setLotIdProperty(QString val) { m_lotId = val; emit lotIdPropertyChanged(val); }
+
 		int timerTypeProperty() const { return m_timerType; }
 		void setTimerType(int type) { m_timerType = type; }
 
@@ -168,6 +178,13 @@ class TensoSensor : public QObject {
 		float minMeasuredLengthProperty() const { return m_minMeasuredLength; }
 		void setMinMeasuredLengthProperty(float val) { m_minMeasuredLength = val; emit minMeasuredLengthPropertyChanged(val); }
 
+		float getForceSample(int sample) {
+			return force_values[sample];
+		}
+		float getDistanceSample(int sample) {
+			return steps2cm(position_values[sample]);
+		}
+
 		float calculateWork(int index) {
 			int i;
 			float work = 0.0;
@@ -185,12 +202,14 @@ class TensoSensor : public QObject {
 			return work;
 		}
 
-		float steps2cm(unsigned int steps) {
-			unsigned int steps_start = 0, steps_end = 0;
+		float steps2cm(int steps) {
+			int steps_start = 0, steps_end = 0;
 			float cm_start = 0.0, cm_end = 0.0;
 			float  cm_delta = 0.0;
 
 			qDebug() << "steps2cm " << steps;
+
+	        	if (steps < 0) steps = 0;
 
 			for(std::map<unsigned int, float>::iterator it = steps2cm_table.begin();
 					it != steps2cm_table.end();
@@ -232,7 +251,7 @@ class TensoSensor : public QObject {
 			SENSOR_OPERATION_MOVE,
 			SENSOR_OPERATION_CALIBRATE,
 			SENSOR_OPERATION_ZERO,
-			SENSOR_OPERATION_PARK,
+			SENSOR_OPERATION_GOSTART,
 			SENSOR_OPERATION_MEASURE1,
 			SENSOR_OPERATION_MEASURE2,
 			SENSOR_OPERATION_LAST
@@ -261,8 +280,8 @@ class TensoSensor : public QObject {
 			/* MEASUREX */
 			MEASUREX_SUBOPERATION_X, // 6
 
-			/* PARK */
-			PARK_SUBOPERATION_INPROGRESS, // 7
+			/* GOSTART */
+			GOSTART_SUBOPERATION_INPROGRESS, // 7
 
 			/* CALIBRATE */
 			CALIBRATE_SUBOPERATION_TILL_FORCE_MAX, // 8
@@ -303,6 +322,8 @@ signals:
 		void secondsCounterPropertyChanged(int newValue);
 		void turnsPropertyChanged(float newValue);
 		void startingLengthPropertyChanged(float newValue);
+		void saveReportFlagPropertyChanged(int newValue);
+		void lotIdPropertyChanged(QString newValue);
 
 		public slots:
 			void onTimeout() {
@@ -361,6 +382,8 @@ signals:
 		int m_secondsCounter;
 		float m_turns;
 		float m_startingLength;
+		int m_saveReportFlag;
+		QString m_lotId;
 
 		std::map<int, signed int> position_values;
 		std::map<int, signed int> force_values;

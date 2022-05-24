@@ -143,15 +143,15 @@ Rectangle {
 			}
 		}
 		TensoButton {
-			id: park_button
-			button_label: "Park"
+			id: gostart_button
+			button_label: "GoStart"
 			x: parent.fieldMariginX
 			y: parent.height - parent.fieldMariginY - parent.buttonHeight * 3
-			property string action_text: "park"
-        		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_PARK
+			property string action_text: "gostart"
+        		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_GOSTART
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: Control.parking()
+                		onClicked: Control.gostart()
         		}
 		}
 		TensoButton {

@@ -19,11 +19,18 @@ Rectangle {
 	property real turns: 0.0
 	property int buttonWidth: 100
 	property int buttonHeight: 60
-	
+
         Text {
 		font.pointSize: 24
 		anchors.horizontalCenter: parent.horizontalCenter
         	text: "Measure report:"
+        }
+        Text {
+		y: 120
+		font.pointSize: 16
+		anchors.left: parent.left
+		anchors.margins: 20
+        	text: "Lot identification:"
         }
         Text {
 		y: 150
@@ -66,6 +73,15 @@ Rectangle {
 		anchors.left: parent.left
 		anchors.margins: 20
         	text: "Turns:"
+        }
+
+        TextInput {
+                id: lotid
+                y: 120
+                font.pointSize: 16
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: ""+TensoSensor.lotId
+                color: "green"
         }
 
         Text {
@@ -115,7 +131,10 @@ Rectangle {
                 property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_SAVE_REPORT
                 MouseArea {
                         anchors.fill: parent
-                        onClicked: Control.save_report()
+                        onClicked: {
+				TensoSensor.lotId = lotid.text
+				Control.save_report()
+			}
                 }
         }
 

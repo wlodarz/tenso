@@ -210,9 +210,31 @@ qint64 StepperEngine::getCurrentPosition()
 {
 	//qDebug() << "StepperEngine::getCurrentPosition()";
 #if TEST_ENGINE
-	static int position;
-	position++;
-	position %= 1000;
+	static int mode = 1;
+	static int position = 0;
+	static int counter = 0;
+
+	switch (mode) {
+		case 1:
+			position+=30;
+			if (position > 150000) {
+				mode = 2;
+				counter = 100;
+			}
+			break;
+		case 2:
+			counter--;
+			if (counter < 0) {
+				mode = 3;
+			}
+			break;
+		case 3:
+			position-=30;
+			if (position < 100) {
+				mode = 1;
+			}
+			break;
+	}
 	return position;
 #else
 	double curr_pos;
