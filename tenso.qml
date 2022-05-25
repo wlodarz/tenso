@@ -37,8 +37,9 @@ Rectangle {
 		signal measureProcessStarted
 
 		onMeasureProcessStarted: {
-			//console.log("Measure Started in Rectangle length " + pullTime.value_int + " steps " + holdTime.value_int)
+			console.log("Measure Started in Rectangle length " + pullTime.value_int + " steps " + holdTime.value_int)
 			canvas.clearRequest()
+			canvas.requestPaint()
 			console.log("total time " + timeField.time)
 		}
 

@@ -40,6 +40,8 @@ function measure1() {
 function measure2() {
 	console.log("MEASURE2")
 	if (TensoSensor.operation == 0) {
+		canvas.clearRequest()
+		canvas.requestPaint()
 		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_MEASURE2
 		TensoSensor.suboperation = TensoSensor.MEASURE2_SUBOPERATION_TILLSTARTMEASUREFORCE
 		start_operation("Measure2")
@@ -123,6 +125,7 @@ function reporting(on_off) {
 		if (on_off == 1) {
 			reporting_widget.focus=true
 			reporting_widget.visible=true
+			start_operation("Reporting")
 		} else {
 			reporting_widget.focus=false
 			reporting_widget.visible=false
@@ -154,7 +157,7 @@ function counting(on_off) {
 
 function save_report() {
 	console.log("Saving report")
-	TensoSensor.saveReportFlag=1
+	TensoSensor.savereportflag=1
 	reporting_widget.focus=false
 	reporting_widget.visible=false
 }

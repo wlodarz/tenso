@@ -13,50 +13,51 @@
 #include <QRegExp>
 
 #include <stdlib.h>
+#include <math.h>
 
 #include <phidget22.h>
-
-#include "config.hpp"
 
 #include "tensosensor.hpp"
 #include "tensothread.hpp"
 #include "tensometer.hpp"
+#include "engine.hpp"
 #include "stepperengine.hpp"
+#include "testengine.hpp"
 #include "tensoconfig.hpp"
 
 int TensoThread::init(TensoSensor *sensor)
 {
-	test_counter = 0;
-
   	m_config = new TensoConfig();
+	if (loadConfig("config.txt") < 0) {
+		return -1;
+	}
+
 	m_tensometer = new Tensometer();
-	m_stepperengine = new StepperEngine();
+	if (m_config->getConfigStr(ENGINE_MODE) == "test") {
+		qDebug() << "Running test engine mode";
+		m_engine = new TestEngine();
+	} else if (m_config->getConfigStr(ENGINE_MODE) == "real") {
+		qDebug() << "Running real enigne mode";
+		m_engine = new StepperEngine();
+	} else {
+		return -1;
+	}
 	m_encoder = new Encoder();
 
 	m_sensor = sensor;
-
-	if (loadConfig("config.txt") < 0) {
-#if !TEST
-		return -1;
-#endif
-	}
 
 	if (loadSteps2CmTable("steps2cm.txt") < 0) {
 		qDebug() << "Can't load step2cm.txt file";
 		return -1;
 	}
 
-	if (m_stepperengine->init() < 0) {
-#if !TEST_ENGINE
+	if (m_engine->init() < 0) {
 		qDebug() << "stepper";
 		return -2;
-#endif
 	}
 	if (m_tensometer->init() < 0) {
-#if !TEST_TENSOMETER
 		qDebug() << "tensometer";
 		return -3;
-#endif
 	}
 
 	if (m_encoder->init() < 0) {
@@ -123,10 +124,10 @@ int TensoThread::loadSteps2CmTable(QString fileFileName)
 
 int TensoThread::configure()
 {
-	m_stepperengine->setDirection(m_config->getConfigInt(DIRECTION_KEY));
-	m_stepperengine->setLoosenDelta(m_config->getConfigInt(LENGTH_LOOSEN_KEY));
-	m_stepperengine->setMaxSpeedDiv(m_config->getConfigInt(ENGINE_MAXSPEEDDIV_KEY));
-	m_stepperengine->setMinSpeedDiv(m_config->getConfigInt(ENGINE_MINSPEEDDIV_KEY));
+	m_engine->setDirection(m_config->getConfigInt(DIRECTION_KEY));
+	m_engine->setLoosenDelta(m_config->getConfigInt(LENGTH_LOOSEN_KEY));
+	m_engine->setMaxSpeedDiv(m_config->getConfigInt(ENGINE_MAXSPEEDDIV_KEY));
+	m_engine->setMinSpeedDiv(m_config->getConfigInt(ENGINE_MINSPEEDDIV_KEY));
 
 	m_sensor->setMaxForceProperty(m_config->getConfigInt(FORCE_MAX_KEY));
 	m_sensor->setMaxLengthProperty(m_config->getConfigInt(LENGTH_MAX_KEY));
@@ -160,15 +161,11 @@ void TensoThread::onTimeout()
 
 void TensoThread::testFunction()
 {
-	test_counter++;
-#if TEST_TENSOMETER
 	int v = m_config->getConfigInt(LENGTH_100CM_KEY) / 2;
-	//int force = m_stepperengine->getCurrentPosition() * m_config->getConfigInt(FORCE_MAX_KEY) / v;
-	int force = test_counter * 20 * m_config->getConfigInt(FORCE_MAX_KEY) / v;
+	//int force = m_engine->getCurrentPosition() * m_config->getConfigInt(FORCE_MAX_KEY) / v;
+	int force = m_engine->getCurrentPosition() * m_config->getConfigInt(FORCE_MAX_KEY) / v;
 
-	//qDebug() << "test_counter " << test_counter;
 	m_tensometer->setForceValue(force);
-#endif
 
 	return;
 }
@@ -202,12 +199,13 @@ void TensoThread::saveSamplesToFile(QString csvFileName, int numberOfSamples)
 
 void TensoThread::onControlTimeout()
 {
-#if TEST
-	testFunction();
-#endif
+	if (m_config->getConfigStr(TENSO_MODE) == "test") {
+		testFunction();
+	}
+
 	int force = m_tensometer->getForceValue();
 	m_sensor->setCurrentForceProperty(force);
-	int position = m_stepperengine->getCurrentPosition();
+	int position = m_engine->getCurrentPosition();
 	m_sensor->setCurrentLengthProperty(position);
 
 	// draw only if required
@@ -216,13 +214,13 @@ void TensoThread::onControlTimeout()
 		m_sensor->updateMeasure(position, force);
 	}
 
-	//qDebug() << "TensoThread::onControlTimeout() " << m_sensor->operationProperty() << " completed " << m_sensor->operationCompletedProperty();
+	qDebug() << "TensoThread::onControlTimeout() " << m_sensor->operationProperty() << " completed " << m_sensor->operationCompletedProperty();
 	if (m_sensor->operationCompletedProperty() == 1) return;
 
 	switch (m_sensor->operationProperty()) {
 		case TensoSensor::Operations::SENSOR_OPERATION_IDLE:
 		{
-			//qDebug() << "SENSOR_OPERATION_IDLE";
+			qDebug() << "SENSOR_OPERATION_IDLE";
 			m_sensor->setMeasureStartedProperty(0);
 			if (m_sensor->saveReportFlagProperty()) {
 				qDebug() << "Saving report from tensothread";
@@ -236,13 +234,11 @@ void TensoThread::onControlTimeout()
 		case TensoSensor::Operations::SENSOR_OPERATION_STOP:
 		{
 			qDebug() << "TensoThread::onControlTimeout() : forceStopProperty()";
-			m_stepperengine->stop();
+			m_engine->stop();
 
 			m_sensor->setOperationProperty(TensoSensor::Operations::SENSOR_OPERATION_IDLE);
 			m_sensor->setSubOperationProperty(TensoSensor::Suboperations::NONE_SUBOPERATION);
 			m_sensor->setOperationCompletedProperty(0);
-
-			test_counter = 0;
 
 			float const1 = m_config->getConfigFloat(CONFIG_ROTATION_CONST1_KEY);
 			float const2 = m_config->getConfigFloat(CONFIG_ROTATION_CONST2_KEY);
@@ -264,7 +260,7 @@ void TensoThread::onControlTimeout()
 			qDebug() << "SENSOR_OPERATION_ZERO";
 
 			/* set current engine position to zero */
-			m_stepperengine->setCurrentPosition(0);
+			m_engine->setCurrentPosition(0);
 
 			/* go IDLE state */
 			m_sensor->setOperationCompletedProperty(1);
@@ -292,13 +288,13 @@ void TensoThread::onControlTimeout()
 			if (m_sensor->getSubOperationStarted() == 0) {
 				int gostart_offset = m_config->getConfigInt(GOSTART_OFFSET);
 				// stop should be removed???
-				m_stepperengine->stop();
+				m_engine->stop();
 				m_sensor->setSubOperationStarted(1);
-				m_stepperengine->setTargetPosition(gostart_offset);
+				m_engine->setTargetPosition(gostart_offset);
 				// setting velocity should be removed??? - velocity should came from adaptSpeed only!?!?!
-				m_stepperengine->setVelocityLimit(50);
+				m_engine->setVelocityLimit(50);
 			} else {
-				if (m_stepperengine->isEngineStopped()) {
+				if (m_engine->isEngineStopped()) {
 					m_sensor->setOperationProperty(TensoSensor::Operations::SENSOR_OPERATION_IDLE);
 					m_sensor->setSubOperationProperty(TensoSensor::Suboperations::NONE_SUBOPERATION);
 				}
@@ -326,15 +322,15 @@ void TensoThread::adaptSpeed()
 	current_force_level /= m_config->getConfigInt(FORCE_MAX_KEY);
 
 	if (current_force_level < m_config->getConfigInt(ENGINE_FORCELEVEL1_KEY)) {
-		m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED1_KEY));
+		m_engine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED1_KEY));
 	} else if (current_force_level < m_config->getConfigInt(ENGINE_FORCELEVEL2_KEY)) {
-		m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED2_KEY));
+		m_engine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED2_KEY));
 	} else if (current_force_level <= m_config->getConfigInt(ENGINE_FORCELEVEL3_KEY)) {
-		m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED3_KEY));
+		m_engine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED3_KEY));
 	} else if (current_force_level <= m_config->getConfigInt(ENGINE_FORCELEVEL4_KEY)) {
-		m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED4_KEY));
+		m_engine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED4_KEY));
 	} else if (current_force_level <= m_config->getConfigInt(ENGINE_FORCELEVEL5_KEY)) {
-		m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED5_KEY));
+		m_engine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED5_KEY));
 	}
 }
 
@@ -376,24 +372,24 @@ void TensoThread::operationMove()
 
 	if (engine_speed_val == 0) {
 		qDebug() << "STOP";
-		m_stepperengine->stop();
+		m_engine->stop();
 	} else if (move_sign > 0) {
 		qDebug() << "MOVING till MAX";
 		if (m_sensor->m_last_move_val == 0) {
-			m_stepperengine->on();
-			m_stepperengine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
-			m_stepperengine->start();
+			m_engine->on();
+			m_engine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
+			m_engine->start();
 		}
-		m_stepperengine->setVelocityLimit(engine_speed_val);
+		m_engine->setVelocityLimit(engine_speed_val);
 	} else if (move_sign < 0) {
 		qDebug() << "MOVING till ZERO";
 		if (m_sensor->m_last_move_val == 0) {
-			m_stepperengine->on();
-			//m_stepperengine->setTargetPosition(0);
-			m_stepperengine->setTargetPosition(-1 * m_config->getConfigInt(LENGTH_MAX_KEY));
-			m_stepperengine->start();
+			m_engine->on();
+			//m_engine->setTargetPosition(0);
+			m_engine->setTargetPosition(-1 * m_config->getConfigInt(LENGTH_MAX_KEY));
+			m_engine->start();
 		}
-		m_stepperengine->setVelocityLimit(engine_speed_val);
+		m_engine->setVelocityLimit(engine_speed_val);
 	}
 
 	m_sensor->m_last_move_val = move_val;
@@ -409,26 +405,26 @@ void TensoThread::operationMeasure1()
 				qDebug() << "Till Max Force";
 				if (m_sensor->getSubOperationStarted() == 0) {
 					qDebug() << "measure1 - till max force suboperation started";
-					m_stepperengine->on();
-					m_stepperengine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
-					m_stepperengine->start();
+					m_engine->on();
+					m_engine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
+					m_engine->start();
 					m_sensor->setSubOperationStarted(1);
 					m_sensor->setMeasureStartedProperty(1);
 					m_sensor->setMeasureIndexProperty(0);
-					test_counter = 0;
-					m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED1_KEY));
+					m_engine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED1_KEY));
 					m_sensor->setMeasurePhaseProperty(TensoSensor::MeasurePhases::MEASURE_PHASE_UP);
 				} else {
 					qDebug() << "measure1 - till max force suboperation already in progress";
 
 					if (m_tensometer->getForceValue() >= m_config->getConfigInt(FORCE_MAX_KEY)
-							|| m_stepperengine->getCurrentPosition() >= m_config->getConfigInt(LENGTH_MAX_KEY)) {
+							|| m_engine->getCurrentPosition() >= m_config->getConfigInt(LENGTH_MAX_KEY)) {
 						qDebug() << "till max force reached or lenght_full reached";
-						m_stepperengine->stop();
+						m_engine->stop();
 						m_sensor->setSubOperationStarted(0);
 						m_sensor->setSubOperationProperty(TensoSensor::Suboperations::MEASURE1_SUBOPERATION_WAIT_1MIN);
 
 						float work = m_sensor->calculateWork(m_sensor->getMeasureUpIndex());
+						work = roundf(work * 100) / 100;
 						m_sensor->setCalculatedWorkUpProperty(work);
 
 						QString csvFileName = m_sensor->lotIdProperty() + "_samplesUp.csv";
@@ -466,21 +462,20 @@ void TensoThread::operationMeasure1()
 
 				if (m_sensor->getSubOperationStarted() == 0) {
 					qDebug() << "measure1 - till min force suboperation started";
-					m_stepperengine->on();
-					m_stepperengine->setTargetPosition(0);
-					m_stepperengine->start();
+					m_engine->on();
+					m_engine->setTargetPosition(0);
+					m_engine->start();
 					m_sensor->setSubOperationStarted(1);
 					m_sensor->setMeasureIndexProperty(0);
-					test_counter = 0;
-					m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED5_KEY));
+					m_engine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED5_KEY));
 					m_sensor->setMeasurePhaseProperty(TensoSensor::MeasurePhases::MEASURE_PHASE_DOWN);
 				} else {
 					qDebug() << "measure1 - till min force suboperation already in progress";
 
 					if (m_tensometer->getForceValue() <= m_config->getConfigInt(FORCE_MIN_KEY)
-							|| m_stepperengine->getCurrentPosition() <= 0) {
+							|| m_engine->getCurrentPosition() <= 0) {
 						qDebug() << "till min force reached or 0 reached";
-						m_stepperengine->stop();
+						m_engine->stop();
 						m_sensor->setOperationCompletedProperty(1);
 						m_sensor->setMeasureStartedProperty(0);
 						m_sensor->setSubOperationStarted(0);
@@ -488,6 +483,7 @@ void TensoThread::operationMeasure1()
 						m_sensor->setSubOperationProperty(TensoSensor::Suboperations::NONE_SUBOPERATION);
 
 						float work = m_sensor->calculateWork(m_sensor->getMeasureDownIndex());
+						work = roundf(work * 100) / 100;
 						m_sensor->setCalculatedWorkDownProperty(work);
 						qDebug() << "POWER = " << m_sensor->calculatedWorkDownProperty();
 
@@ -512,21 +508,20 @@ void TensoThread::operationMeasure2()
 				adaptSpeed();
 
 				if (m_sensor->getSubOperationStarted() == 0) {
-					m_stepperengine->on();
-					m_stepperengine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
-					m_stepperengine->start();
+					m_engine->on();
+					m_engine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
+					m_engine->start();
 					m_sensor->setSubOperationStarted(1);
 					m_sensor->setMeasureIndexProperty(0);
 					m_sensor->setMeasureStartedProperty(0);
-					test_counter = 0;
-					m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED1_KEY));
+					m_engine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED1_KEY));
 					//m_sensor->setMinMeasuredLengthProperty(0);
 					m_sensor->setMaxMeasuredLengthProperty(0);
 				} else {
 					if (m_tensometer->getForceValue() >= m_config->getConfigInt(MEASURE2_MINFORCE_KEY)) {
 						m_sensor->setSubOperationStarted(0);
 						m_sensor->setSubOperationProperty(TensoSensor::Suboperations::MEASURE2_SUBOPERATION_TILLMAXFORCE);
-						//m_sensor->setMinMeasuredLengthProperty(m_stepperengine->getCurrentPosition());
+						//m_sensor->setMinMeasuredLengthProperty(m_engine->getCurrentPosition());
 					}
 				}
 			}
@@ -534,24 +529,24 @@ void TensoThread::operationMeasure2()
 		case TensoSensor::Suboperations::MEASURE2_SUBOPERATION_TILLMAXFORCE:
 			{
 				adaptSpeed();
-				if (m_sensor->steps2cm(m_stepperengine->getCurrentPosition()) > m_sensor->maxMeasuredLengthProperty())
-						m_sensor->setMaxMeasuredLengthProperty(m_sensor->steps2cm(m_stepperengine->getCurrentPosition()));
+				if (m_sensor->steps2cm(m_engine->getCurrentPosition()) > m_sensor->maxMeasuredLengthProperty())
+						m_sensor->setMaxMeasuredLengthProperty(m_sensor->steps2cm(m_engine->getCurrentPosition()));
 
 				if (m_sensor->getSubOperationStarted() == 0) {
 					m_sensor->setSubOperationStarted(1);
 					m_sensor->setMeasureStartedProperty(1);
 					m_sensor->setMeasureIndexProperty(0);
-					test_counter = 0;
 					m_sensor->setMeasurePhaseProperty(TensoSensor::MeasurePhases::MEASURE_PHASE_UP);
 				} else {
 
 					if (m_tensometer->getForceValue() >= m_config->getConfigInt(MEASURE2_HOLDFORCE_KEY)
-							|| m_stepperengine->getCurrentPosition() >= m_config->getConfigInt(LENGTH_MAX_KEY)) {
-						m_stepperengine->stop();
+							|| m_engine->getCurrentPosition() >= m_config->getConfigInt(LENGTH_MAX_KEY)) {
+						m_engine->stop();
 						m_sensor->setSubOperationStarted(0);
 						m_sensor->setSubOperationProperty(TensoSensor::Suboperations::MEASURE2_SUBOPERATION_HOLDMAXFORCE);
 
 						float work = m_sensor->calculateWork(m_sensor->getMeasureUpIndex());
+						work = roundf(work * 100) / 100;
 						m_sensor->setCalculatedWorkUpProperty(work);
 						qDebug() << "WorkUp = " << m_sensor->calculatedWorkUpProperty();
 						QString csvFileName = m_sensor->lotIdProperty() + "_samplesUp.csv";
@@ -578,23 +573,24 @@ void TensoThread::operationMeasure2()
 						m_sensor->setSubOperationProperty(TensoSensor::Suboperations::MEASURE2_SUBOPERATION_TILLMINFORCE);
 						m_sensor->setSubOperationStarted(0);
 						float work = m_sensor->calculateWork(m_sensor->getMeasureHoldIndex());
+						work = roundf(work * 100) / 100;
 						m_sensor->setCalculatedWorkHoldProperty(work);
 						qDebug() << "WorkHold = " << m_sensor->calculatedWorkHoldProperty();
 						QString csvFileName = m_sensor->lotIdProperty() + "_samplesHold.csv";
 						saveSamplesToFile(csvFileName, m_sensor->getMeasureHoldIndex());
 					} else {
 						if (m_tensometer->getForceValue() >= m_config->getConfigInt(MEASURE2_HOLDFORCE_KEY)
-								|| m_stepperengine->getCurrentPosition() >= m_config->getConfigInt(LENGTH_MAX_KEY)) {
+								|| m_engine->getCurrentPosition() >= m_config->getConfigInt(LENGTH_MAX_KEY)) {
 							/* stop */
 							qDebug() << "measure2 - hold max force suboperation stop engine";
-							m_stepperengine->stop();
+							m_engine->stop();
 
 						} else {
 							/* try to hold max force */
 							qDebug() << "measure2 - hold max force suboperation start engine";
-							m_stepperengine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
-							m_stepperengine->start();
-							m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED5_KEY));
+							m_engine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
+							m_engine->start();
+							m_engine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED5_KEY));
 						}
 					}
 				}
@@ -606,19 +602,18 @@ void TensoThread::operationMeasure2()
 				adaptSpeed();
 
 				if (m_sensor->getSubOperationStarted() == 0) {
-					m_stepperengine->on();
-					m_stepperengine->setTargetPosition(0);
-					m_stepperengine->start();
+					m_engine->on();
+					m_engine->setTargetPosition(0);
+					m_engine->start();
 					m_sensor->setSubOperationStarted(1);
 					m_sensor->setMeasureIndexProperty(0);
-					test_counter = 0;
-					m_stepperengine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED5_KEY));
+					m_engine->setVelocityLimit(m_config->getConfigInt(ENGINE_SPEED5_KEY));
 					m_sensor->setMeasurePhaseProperty(TensoSensor::MeasurePhases::MEASURE_PHASE_DOWN);
 				} else {
 					if (m_tensometer->getForceValue() <= m_config->getConfigInt(FORCE_MIN_KEY)
-							|| m_stepperengine->getCurrentPosition() <= 0) {
+							|| m_engine->getCurrentPosition() <= 0) {
 						qDebug() << "till min force reached or 0 reached";
-						m_stepperengine->stop();
+						m_engine->stop();
 						m_sensor->setOperationCompletedProperty(1);
 						m_sensor->setMeasureStartedProperty(0);
 						m_sensor->setSubOperationStarted(0);
@@ -626,6 +621,7 @@ void TensoThread::operationMeasure2()
 						m_sensor->setSubOperationProperty(TensoSensor::Suboperations::NONE_SUBOPERATION);
 
 						float work = m_sensor->calculateWork(m_sensor->getMeasureDownIndex());
+						work = roundf(work * 100) / 100;
 						m_sensor->setCalculatedWorkDownProperty(work);
 						qDebug() << "WorkDown = " << m_sensor->calculatedWorkDownProperty();
 
@@ -665,10 +661,10 @@ void TensoThread::operationCalibrate()
 					/* just start the engine with the middle speed
 					*/
 					int engine_speed_val = m_config->getConfigInt(ENGINE_SPEED2_KEY);
-					m_stepperengine->on();
-					m_stepperengine->start();
-					m_stepperengine->setVelocityLimit(engine_speed_val);
-					m_stepperengine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
+					m_engine->on();
+					m_engine->start();
+					m_engine->setVelocityLimit(engine_speed_val);
+					m_engine->setTargetPosition(m_config->getConfigInt(LENGTH_MAX_KEY));
 					m_sensor->setSubOperationStarted(1);
 				}
 
@@ -676,10 +672,10 @@ void TensoThread::operationCalibrate()
 				*/
 				int current_force_value = m_tensometer->getForceValue();
 				if (current_force_value >= m_config->getConfigInt(CALIBRATE_FORCE_0_KEY)) {
-					m_stepperengine->stop();
+					m_engine->stop();
 					m_sensor->setSubOperationProperty(TensoSensor::Suboperations::CALIBRATE_SUBOPERATION_LOOSE);
 					m_sensor->setSubOperationStarted(0);
-					m_stepperengine->setCurrentPosition(0);
+					m_engine->setCurrentPosition(0);
 				}
 			}
 			break;
@@ -691,14 +687,14 @@ void TensoThread::operationCalibrate()
 					/* just start the engine with the middle speed
 					*/
 					int engine_speed_val = m_config->getConfigInt(ENGINE_SPEED2_KEY);
-					int position = m_stepperengine->getCurrentPosition();
-					m_stepperengine->start();
-					m_stepperengine->setVelocityLimit(engine_speed_val);
-					m_stepperengine->setTargetPosition(position - m_config->getConfigInt(CALIBRATE_LENGTH_LOOSE_KEY));
+					int position = m_engine->getCurrentPosition();
+					m_engine->start();
+					m_engine->setVelocityLimit(engine_speed_val);
+					m_engine->setTargetPosition(position - m_config->getConfigInt(CALIBRATE_LENGTH_LOOSE_KEY));
 					m_sensor->setSubOperationStarted(1);
 				} else {
 
-					if (m_stepperengine->isEngineStopped()) {
+					if (m_engine->isEngineStopped()) {
 						m_sensor->setOperationCompletedProperty(1);
 						m_sensor->setOperationProperty(TensoSensor::Operations::SENSOR_OPERATION_IDLE);
 						m_sensor->setSubOperationProperty(TensoSensor::Suboperations::NONE_SUBOPERATION);

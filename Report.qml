@@ -94,25 +94,25 @@ Rectangle {
 		y: 180
 		font.pointSize: 16
 		anchors.horizontalCenter: parent.horizontalCenter
-        	text: ""+workUp
+        	text: ""+workUp.toFixed(2)
         }
         Text {
 		y: 210
 		font.pointSize: 16
 		anchors.horizontalCenter: parent.horizontalCenter
-        	text: ""+workHold
+        	text: ""+workHold.toFixed(2)
         }
         Text {
 		y: 240
 		font.pointSize: 16
 		anchors.horizontalCenter: parent.horizontalCenter
-        	text: ""+workUpAndHold
+        	text: ""+workUpAndHold.toFixed(2)
         }
         Text {
 		y: 270
 		font.pointSize: 16
 		anchors.horizontalCenter: parent.horizontalCenter
-        	text: ""+workDown
+        	text: ""+workDown.toFixed(2)
         }
         Text {
 		y: 300

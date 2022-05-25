@@ -4,7 +4,6 @@
 #include <phidget22.h>
 #include <QDebug>
 
-#include "config.hpp"
 #include "tensoconfig.hpp"
 
 #include "stepperengine.hpp"
@@ -74,9 +73,9 @@ int StepperEngine::init()
 	const char *err;
 	PhidgetReturnCode result;
 
-	m_position = 0;
-	m_connected = 0;
-	m_maxspeeddiv = 100000;
+	setPosition(0);
+	setConnected(0);
+	setMaxSpeedDiv(100000);
 	double currentPosition;
 
 	PhidgetStepper_create(&m_stepper);
@@ -98,10 +97,8 @@ int StepperEngine::init()
 	PhidgetStepper_getMaxAcceleration(m_stepper, &maxAccel);
 	PhidgetStepper_getMaxVelocityLimit(m_stepper, &maxVel);
 
-	//PhidgetStepper_setAcceleration(m_stepper, minAccel*100);
-	//PhidgetStepper_setAcceleration(m_stepper, maxAccel/250);
 	PhidgetStepper_setAcceleration(m_stepper, maxAccel/10000);
-        PhidgetStepper_setVelocityLimit(m_stepper, maxVel/m_maxspeeddiv);
+        PhidgetStepper_setVelocityLimit(m_stepper, maxVel/getMaxSpeedDiv());
 
 	PhidgetStepper_getPosition(m_stepper, &currentPosition);
 	PhidgetStepper_addPositionOffset(m_stepper, -1 * currentPosition);
@@ -118,30 +115,19 @@ int StepperEngine::init()
 	qDebug() << "CURRENT MAX " << currentMax;
 	qDebug() << "CURRENT LIMIT " << currentLimit;
 	qDebug() << "MAX Velocity " << maxVel;
-	printf("max velocity %f maxAccel %f m_maxspeeddiv %d\n", maxVel, maxAccel, m_maxspeeddiv);
+	printf("max velocity %f maxAccel %f m_maxspeeddiv %d\n", maxVel, maxAccel, getMaxSpeedDiv());
 	printf("max current %f current %f\n", currentMax, currentLimit);
-
-
-#if 0
-	PhidgetStepper_setTargetPosition (m_stepper, 0);
-	stopped = PFALSE;
-        while(!stopped)
-        {
-                PhidgetStepper_getIsMoving(m_stepper, &stopped);
-                sleep(1);
-        }
-#endif
 
 	return 0;
 }
 
 void StepperEngine::start()
 {
-	int speed_limit = maxVel / m_minspeeddiv;
+	int speed_limit = maxVel / getMinSpeedDiv();
 
 	qDebug() << "StepperEngine::start() limit " << speed_limit;
 	qDebug() << "StepperEngine::start() maxVel " << maxVel;
-	qDebug() << "StepperEngine::start() m_minspeeddiv " << m_minspeeddiv;
+	qDebug() << "StepperEngine::start() m_minspeeddiv " << getMinSpeedDiv();
 
 	if (checkConnected() < 0) return;
         PhidgetStepper_setVelocityLimit(m_stepper, speed_limit);
@@ -209,34 +195,6 @@ void StepperEngine::setTargetPosition(qint64 position)
 qint64 StepperEngine::getCurrentPosition()
 {
 	//qDebug() << "StepperEngine::getCurrentPosition()";
-#if TEST_ENGINE
-	static int mode = 1;
-	static int position = 0;
-	static int counter = 0;
-
-	switch (mode) {
-		case 1:
-			position+=30;
-			if (position > 150000) {
-				mode = 2;
-				counter = 100;
-			}
-			break;
-		case 2:
-			counter--;
-			if (counter < 0) {
-				mode = 3;
-			}
-			break;
-		case 3:
-			position-=30;
-			if (position < 100) {
-				mode = 1;
-			}
-			break;
-	}
-	return position;
-#else
 	double curr_pos;
 
 	if (checkConnected() < 0) return -1;
@@ -244,12 +202,11 @@ qint64 StepperEngine::getCurrentPosition()
 	if(PhidgetStepper_getPosition(m_stepper, &curr_pos) == EPHIDGET_OK)	
 		return curr_pos;
 	return -1;
-#endif
 }
 
 int StepperEngine::checkConnected()
 {
-	if (!m_connected) {
+	if (!getConnected()) {
 		qDebug() << "StepperEngine::checkConnected(): engine not detected";
 		return -1;
 	}
@@ -274,15 +231,12 @@ int StepperEngine::isEngineStopped()
 {
 	int stopped = 0;
 	PhidgetStepper_getIsMoving(m_stepper, &stopped);
-#if TEST_ENGINE
-	stopped = random() % 2;
-#endif
 	return stopped;
 }
 
 void StepperEngine::setVelocityLimit(int limit)
 {
-	m_maxspeeddiv = limit;
+	setMaxSpeedDiv(limit);
         PhidgetStepper_setVelocityLimit(m_stepper, maxVel / limit);
 	//qDebug() << "speed " << maxVel / limit;
 }

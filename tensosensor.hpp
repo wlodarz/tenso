@@ -55,7 +55,7 @@ class TensoSensor : public QObject {
 		Q_PROPERTY(int secondsCounter READ secondsCounterProperty WRITE setSecondsCounterProperty NOTIFY secondsCounterPropertyChanged)
 		Q_PROPERTY(float turns READ turnsProperty WRITE setTurnsProperty NOTIFY turnsPropertyChanged)
 		Q_PROPERTY(float startingLength READ startingLengthProperty WRITE setStartingLengthProperty NOTIFY startingLengthPropertyChanged)
-		Q_PROPERTY(int saveReportFlag READ saveReportFlagProperty WRITE setSaveReportFlagProperty NOTIFY saveReportFlagPropertyChanged)
+        	Q_PROPERTY(int savereportflag READ saveReportFlagProperty WRITE setSaveReportFlagProperty NOTIFY saveReportFlagPropertyChanged)
 		Q_PROPERTY(QString lotId READ lotIdProperty WRITE setLotIdProperty NOTIFY lotIdPropertyChanged)
 
 	public:

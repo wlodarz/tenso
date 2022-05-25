@@ -5,7 +5,7 @@
 #include <QDebug>
 
 #include "tensometer.hpp"
-#include "stepperengine.hpp"
+#include "engine.hpp"
 #include "tensoconfig.hpp"
 #include "encoder.hpp"
 
@@ -44,10 +44,8 @@ private:
   TensoConfig *m_config;
   TensoSensor *m_sensor;
   Tensometer *m_tensometer;
-  StepperEngine *m_stepperengine;
+  Engine *m_engine;
   Encoder *m_encoder;
-
-  int test_counter;
 };
 
 #endif // __TENSOTHREAD_H__
