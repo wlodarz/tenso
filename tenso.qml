@@ -10,14 +10,14 @@ Rectangle {
 	property int menuWidth: 160
 	opacity: 0.9
 
-	Counter {
-		id: counter
-		//visible: (TensoSensor.Suboperation == TensoSensor.MEASURE2_SUBOPERATION_HOLDMAXFORCE) ? true : false
-		visible: true
-		x: parent.menuWidth + 60
-		y: 20
-		counterValue: TensoSensor.secondsCounter
-	}
+	//Counter {
+	//	id: counter
+	//	//visible: (TensoSensor.Suboperation == TensoSensor.MEASURE2_SUBOPERATION_HOLDMAXFORCE) ? true : false
+	//	visible: true
+	//	x: parent.menuWidth + 60
+	//	y: 20
+	//	counterValue: TensoSensor.secondsCounter
+	//}
 
 	Rectangle {
 		x: 0
@@ -57,6 +57,13 @@ Rectangle {
 			y: parent.fieldMariginY + parent.fieldHeight * 1
 			field_label: "C.Length"
 			value_text: "" + TensoSensor.currentLength
+		}
+		TensoField {
+			id: counterField
+			x: parent.fieldMariginX
+			y: parent.fieldMariginY + parent.fieldHeight * 2
+			field_label: "Counter"
+			value_text: "" + TensoSensor.secondsCounter
 		}
 
 		TensoButton {
