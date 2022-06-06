@@ -164,6 +164,11 @@ void TensoThread::testFunction()
 	int v = m_config->getConfigInt(LENGTH_100CM_KEY) / 2;
 	//int force = m_engine->getCurrentPosition() * m_config->getConfigInt(FORCE_MAX_KEY) / v;
 	int force = m_engine->getCurrentPosition() * m_config->getConfigInt(FORCE_MAX_KEY) / v;
+	int secondsFromStart = 0;
+	if (m_sensor->secondsCounterProperty() > 0) {
+        	secondsFromStart = m_config->getConfigInt(MEASURE2_HOLDTIME_KEY) -  m_sensor->secondsCounterProperty();
+	}
+	force -= (secondsFromStart * 10);
 
 	m_tensometer->setForceValue(force);
 
