@@ -122,6 +122,11 @@ qint64 TestEngine::getCurrentPosition()
 	return m_currentPosition;
 }
 
+qint64 TestEngine::getTargetPosition()
+{
+    return m_targetPosition;
+}
+
 int TestEngine::checkConnected()
 {
 	if (!getConnected()) {
@@ -150,7 +155,7 @@ int TestEngine::waitTillEngineStopped()
 int TestEngine::isEngineStopped()
 {
 	int stopped = 0;
-	stopped = random() % 2;
+    	stopped = rand() % 2;
 
 	return stopped;
 }

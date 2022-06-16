@@ -41,7 +41,7 @@ float TensoConfig::getConfigFloat(QString key)
 int TensoConfig::parseLine(QString line)
 {
 	QString key, value;
-	QRegExp rx("([a-zA-Z0-9.]+)=([a-zA-Z0-9.]+)");
+    	QRegExp rx("([a-zA-Z0-9.]+)=([a-zA-Z0-9.-]+)");
 	//qDebug() << "parsing line " << line;
 	if (rx.indexIn(line) < 0) {
 		qDebug() << "line " << line << " not matched";
@@ -58,7 +58,9 @@ int TensoConfig::parseLine(QString line)
 
 int TensoConfig::load(QString configFileName)
 {
-	QFile configFile(configFileName);
+    	QFile configFile(configFileName);
+    	//QFile configFile("c:/tenso/config.txt");
+    	qDebug() << "config filename " << configFileName;
 	if (!configFile.open(QIODevice::ReadOnly | QIODevice::Text)) return -1;
 
 	QTextStream in(&configFile);
@@ -98,6 +100,7 @@ int TensoConfig::validate()
 	CHECK_CONFIG_ENTRY(ENGINE_FORCELEVEL5_KEY);
 	CHECK_CONFIG_ENTRY(CALIBRATE_FORCE_0_KEY);
 	CHECK_CONFIG_ENTRY(CALIBRATE_LENGTH_LOOSE_KEY);
+    	CHECK_CONFIG_ENTRY(CALIBRATE_LENGTH_KEY);
 	CHECK_CONFIG_ENTRY(MEASURE1_HOLDTIME_KEY);
 	CHECK_CONFIG_ENTRY(MEASURE2_HOLDTIME_KEY);
 	CHECK_CONFIG_ENTRY(MEASURE2_HOLDFORCE_KEY);

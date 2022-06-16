@@ -44,7 +44,10 @@ class TensoSensor : public QObject {
 		Q_PROPERTY(int measureDownIndex READ measureDownIndexProperty WRITE setMeasureDownIndexProperty NOTIFY measureDownIndexPropertyChanged)
 
 		Q_PROPERTY(int maxForce READ maxForceProperty WRITE setMaxForceProperty NOTIFY maxForcePropertyChanged)
+        	Q_PROPERTY(int maxMeasuredForce READ maxMeasuredForceProperty WRITE setMaxMeasuredForceProperty NOTIFY maxMeasuredForcePropertyChanged)
+        	Q_PROPERTY(int oneMMeasuredForce READ oneMMeasuredForceProperty WRITE setOneMMeasuredForceProperty NOTIFY oneMMeasuredForcePropertyChanged)
 		Q_PROPERTY(int maxLength READ maxLengthProperty WRITE setMaxLengthProperty NOTIFY maxLengthPropertyChanged)
+        	Q_PROPERTY(int maxLengthCm READ maxLengthCmProperty WRITE setMaxLengthCmProperty NOTIFY maxLengthCmPropertyChanged)
 
 		Q_PROPERTY(float calculatedWorkUp READ calculatedWorkUpProperty WRITE setCalculatedWorkUpProperty NOTIFY calculatedWorkUpPropertyChanged)
 		Q_PROPERTY(float calculatedWorkHold READ calculatedWorkHoldProperty WRITE setCalculatedWorkHoldProperty NOTIFY calculatedWorkHoldPropertyChanged)
@@ -67,7 +70,10 @@ class TensoSensor : public QObject {
 		m_currentForce(0),
 		m_currentLength(0),
 		m_maxForce(0),
+        	m_maxMeasuredForce(0),
+        	m_oneMMeasuredForce(0),
 		m_maxLength(0),
+        	m_maxLengthCm(0),
 		m_measureUpdated(0),
 		m_measureStarted(0),
 		m_calculatedWorkUp(0),
@@ -110,8 +116,17 @@ class TensoSensor : public QObject {
 		int maxForceProperty() const { return m_maxForce; }
 		void setMaxForceProperty(int val) { m_maxForce = val; emit maxForcePropertyChanged(val); }
 
+        	int maxMeasuredForceProperty() const { return m_maxMeasuredForce; }
+        	void setMaxMeasuredForceProperty(int val) { m_maxMeasuredForce = val; emit maxMeasuredForcePropertyChanged(val); }
+
+        	int oneMMeasuredForceProperty() const { return m_oneMMeasuredForce; }
+        	void setOneMMeasuredForceProperty(int val) { m_oneMMeasuredForce = val; emit oneMMeasuredForcePropertyChanged(val); }
+
 		int maxLengthProperty() const { return m_maxLength; }
 		void setMaxLengthProperty(int val) { m_maxLength = val; emit maxLengthPropertyChanged(val); }
+
+        	int maxLengthCmProperty() const { return m_maxLengthCm; }
+        	void setMaxLengthCmProperty(int val) { m_maxLengthCm = val; emit maxLengthCmPropertyChanged(val); }
 
 		int measureUpdatedProperty() const { return m_measureUpdated; }
 		void setMeasureUpdatedProperty(int val) { m_measureUpdated = val; emit measureUpdatedPropertyChanged(val); }
@@ -207,18 +222,19 @@ class TensoSensor : public QObject {
 			float cm_start = 0.0, cm_end = 0.0;
 			float  cm_delta = 0.0;
 
-			qDebug() << "steps2cm " << steps;
+            		//qDebug() << "steps2cm " << steps;
 
-	        	if (steps < 0) steps = 0;
-
+            		//if (steps < 0) steps = 0;
 			for(std::map<unsigned int, float>::iterator it = steps2cm_table.begin();
 					it != steps2cm_table.end();
 					it++) {
 				steps_end = it->first;
 				cm_end = it->second;
 
+                		//qDebug() << "checking " << steps_end;
+
 				if (steps < steps_end) {
-					qDebug() << "steps_i " << steps_end;
+                    			//qDebug() << "steps_i " << steps_end;
 					break;
 				}
 
@@ -229,7 +245,7 @@ class TensoSensor : public QObject {
 			float perc = (float)(steps - steps_start) / (float)(steps_end - steps_start);
 			cm_delta = cm_start + (cm_end - cm_start) * perc;
 
-			qDebug() << "perc " << perc << "cm_delta " << cm_delta;
+            		//qDebug() << "perc " << perc << "cm_delta " << cm_delta;
 			if (perc > 100) {
 				qDebug() << "steps " << steps << " steps_start " << steps_start;
 				qDebug() << "steps_end " << steps_end << " steps_start " << steps_start;
@@ -306,7 +322,10 @@ signals:
 		void currentForcePropertyChanged(int newValue);
 		void currentLengthPropertyChanged(int newValue);
 		void maxForcePropertyChanged(int newValue);
+        	void maxMeasuredForcePropertyChanged(int newValue);
+        	void oneMMeasuredForcePropertyChanged(int newValue);
 		void maxLengthPropertyChanged(int newValue);
+        	void maxLengthCmPropertyChanged(int newValue);
 		void measureUpdatedPropertyChanged(int newValue);
 		void measureStartedPropertyChanged(int newValue);
 		void measureIndexPropertyChanged(int newValue);
@@ -359,7 +378,10 @@ signals:
 		int m_currentForce;
 		int m_currentLength;
 		int m_maxForce;
+        	int m_maxMeasuredForce;
+        	int m_oneMMeasuredForce;
 		int m_maxLength;
+        	int m_maxLengthCm;
 		int m_measureUpdated;
 		int m_measureStarted;
 		float m_calculatedWorkUp;

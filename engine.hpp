@@ -11,6 +11,7 @@ public:
 	virtual void on() = 0;
 	virtual void setCurrentPosition(qint64 position) = 0;
 	virtual void setTargetPosition(qint64 position) = 0;
+	virtual qint64 getTargetPosition() = 0;
 	virtual qint64 getCurrentPosition() = 0;
 
 	virtual void loose() = 0;
@@ -32,6 +33,9 @@ public:
 	int getMinSpeedDiv() { return m_minspeeddiv; } 
 	void setPosition(qint64 position) { m_position = position; }
 	qint64 getPosition() { return m_position; }
+
+protected:
+    	qint64 m_targetPosition;
 
 private:
 	qint64 m_position;

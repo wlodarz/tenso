@@ -281,7 +281,7 @@ Rectangle {
 			var pic_height = height - 2 * mariginY
 
 			var maxX = TensoSensor.maxForce
-			var maxY = TensoSensor.maxLength
+            		var maxY = TensoSensor.maxLengthCm
 
 			ctx.reset()
 
@@ -301,9 +301,9 @@ Rectangle {
 			// x - length
 			var x_offset = 20
 			var y_offset = 10
-			var single_x = max_to_single(TensoSensor.maxLength)
+            		var single_x = max_to_single(TensoSensor.maxLengthCm)
 			var single_y = max_to_single(TensoSensor.maxForce)
-			var steps_x = TensoSensor.maxLength / single_x
+		        var steps_x = TensoSensor.maxLengthCm / single_x
 			var steps_y = TensoSensor.maxForce / single_y
 
 			// steps y
@@ -328,7 +328,7 @@ Rectangle {
 
 			// steps x
 			for (var i=0; i<steps_x; i++) {
-				var start_x = x_zero + val_to_screen(i * single_x, TensoSensor.maxLength, pic_width)
+                		var start_x = x_zero + val_to_screen(i * single_x, TensoSensor.maxLengthCm, pic_width)
 				var start_y = y_zero
 				ctx.moveTo(start_x, start_y)
 				ctx.lineTo(start_x, start_y + y_offset)
@@ -340,7 +340,7 @@ Rectangle {
 			var start_x = x_zero + pic_width
 			ctx.moveTo(start_x, start_y)
 			ctx.lineTo(start_x, start_y + y_offset)
-			var range_text = "" + TensoSensor.maxLength
+            		var range_text = "" + TensoSensor.maxLengthCm
 			var text_offset = ctx.measureText(range_text).width
 			ctx.fillText(range_text, start_x - text_offset - 1, start_y + 10)
 			text_offset = ctx.measureText("length").width
@@ -354,13 +354,13 @@ Rectangle {
 			ctx.beginPath()
 			ctx.moveTo(x_zero, y_zero)
 			if (lengthUpArray > 0) {
-					var to_x = x_zero + val_to_screen(lengthUpArray[0], TensoSensor.maxLength, pic_width)
+                    			var to_x = x_zero + val_to_screen(lengthUpArray[0], TensoSensor.maxLengthCm, pic_width)
 					var to_y = y_zero - val_to_screen(forceUpArray[0], TensoSensor.maxForce, pic_height)
 					ctx.moveTo(to_x, to_y)
 			}
 			for (var i=0; i<lengthUpArray.length; i++) {
-				if (lengthUpArray[i] < TensoSensor.maxLength && forceUpArray[i] < TensoSensor.maxForce) {
-					var to_x = x_zero + val_to_screen(lengthUpArray[i], TensoSensor.maxLength, pic_width)
+                		if (lengthUpArray[i] < TensoSensor.maxLengthCm && forceUpArray[i] < TensoSensor.maxForce) {
+                    			var to_x = x_zero + val_to_screen(lengthUpArray[i], TensoSensor.maxLengthCm, pic_width)
 					var to_y = y_zero - val_to_screen(forceUpArray[i], TensoSensor.maxForce, pic_height)
 					ctx.lineTo(to_x, to_y)
 				}
@@ -371,14 +371,14 @@ Rectangle {
 			ctx.beginPath()
 			//ctx.moveTo(x_zero, y_zero)
 			if (lengthHoldArray > 0) {
-					var to_x = x_zero + val_to_screen(lengthHoldArray[0], TensoSensor.maxLength, pic_width)
+                    			var to_x = x_zero + val_to_screen(lengthHoldArray[0], TensoSensor.maxLengthCm, pic_width)
 					var to_y = y_zero - val_to_screen(forceHoldArray[0], TensoSensor.maxForce, pic_height)
 					ctx.moveTo(to_x, to_y)
 					console.log("Hold points start " + to_x + " " + to_y)
 			}
 			for (var i=0; i<lengthHoldArray.length; i++) {
-				if (lengthHoldArray[i] < TensoSensor.maxLength && forceHoldArray[i] < TensoSensor.maxForce) {
-					var to_x = x_zero + val_to_screen(lengthHoldArray[i], TensoSensor.maxLength, pic_width)
+                		if (lengthHoldArray[i] < TensoSensor.maxLengthCm && forceHoldArray[i] < TensoSensor.maxForce) {
+                    			var to_x = x_zero + val_to_screen(lengthHoldArray[i], TensoSensor.maxLengthCm, pic_width)
 					var to_y = y_zero - val_to_screen(forceHoldArray[i], TensoSensor.maxForce, pic_height)
 					ctx.lineTo(to_x, to_y)
 				}
@@ -390,13 +390,13 @@ Rectangle {
 			ctx.beginPath()
 			//ctx.moveTo(x_zero, y_zero)
 			if (lengthDownArray > 0) {
-					var to_x = x_zero + val_to_screen(lengthDownArray[0], TensoSensor.maxLength, pic_width)
+                    			var to_x = x_zero + val_to_screen(lengthDownArray[0], TensoSensor.maxLengthCm, pic_width)
 					var to_y = y_zero - val_to_screen(forceDownArray[0], TensoSensor.maxForce, pic_height)
 					ctx.moveTo(to_x, to_y)
 			}
 			for (var i=0; i<lengthDownArray.length; i++) {
-				if (lengthDownArray[i] < TensoSensor.maxLength && forceDownArray[i] < TensoSensor.maxForce) {
-					var to_x = x_zero + val_to_screen(lengthDownArray[i], TensoSensor.maxLength, pic_width)
+                		if (lengthDownArray[i] < TensoSensor.maxLengthCm && forceDownArray[i] < TensoSensor.maxForce) {
+                    			var to_x = x_zero + val_to_screen(lengthDownArray[i], TensoSensor.maxLengthCm, pic_width)
 					var to_y = y_zero - val_to_screen(forceDownArray[i], TensoSensor.maxForce, pic_height)
 					ctx.lineTo(to_x, to_y)
 				}

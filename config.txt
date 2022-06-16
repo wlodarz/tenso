@@ -1,8 +1,11 @@
+tenso.mode=test
+engine.mode=test
 force.min=500
 force.max=6000
 length.loosen=200
 calibrate.force.0=10000
 calibrate.length.loose=2000
+calibrate.length=1000
 length.20cm=10000
 length.100cm=50000
 length.max=26000

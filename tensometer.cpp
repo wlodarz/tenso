@@ -52,7 +52,7 @@ static void CCONV dataHandler(PhidgetVoltageRatioInputHandle ch, void *ctx, doub
         //qDebug() << "Data Event (" << index << " " << val;
 
         weight = K * ((voltageRatio * 1000.0 / 5.0) - offset);
-        qDebug() << "Weight " << weight << "g";
+    	//qDebug() << "Weight " << weight << "g";
 	//printf("voltageRatio %f weight %f\n", voltageRatio, weight);
 
 	tenso->setForceValue((int)weight);

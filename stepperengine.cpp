@@ -64,6 +64,7 @@ void CCONV positionChangeHandler(PhidgetStepperHandle ch, void *ctx, double Valu
 
 StepperEngine::StepperEngine()
 {
+    m_targetPosition = 0;
 }
 
 StepperEngine::~StepperEngine() {}
@@ -189,6 +190,7 @@ void StepperEngine::setTargetPosition(qint64 position)
 	qDebug() << "StepperEngine::setTargetPosition() " << position;
 
 	if (checkConnected() < 0) return;
+	m_targetPosition = position;
 	PhidgetStepper_setTargetPosition (m_stepper, position);
 }
 
@@ -202,6 +204,11 @@ qint64 StepperEngine::getCurrentPosition()
 	if(PhidgetStepper_getPosition(m_stepper, &curr_pos) == EPHIDGET_OK)	
 		return curr_pos;
 	return -1;
+}
+
+qint64 StepperEngine::getTargetPosition()
+{
+    return m_targetPosition;
 }
 
 int StepperEngine::checkConnected()

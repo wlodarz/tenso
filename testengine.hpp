@@ -17,6 +17,7 @@ public:
 	void setCurrentPosition(qint64 position);
 	void setTargetPosition(qint64 position);
 	qint64 getCurrentPosition();
+    	qint64 getTargetPosition();
 	void loose();
 	int checkConnected();
 	int waitTillEngineStopped();

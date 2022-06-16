@@ -32,6 +32,7 @@
 #define ENGINE_FORCELEVEL4_KEY  "engine.forcelevel4"
 #define ENGINE_FORCELEVEL5_KEY  "engine.forcelevel5"
 #define CALIBRATE_FORCE_0_KEY "calibrate.force.0"
+#define CALIBRATE_LENGTH_KEY  "calibrate.length"
 #define CALIBRATE_LENGTH_LOOSE_KEY "calibrate.length.loose"
 #define MEASURE1_HOLDTIME_KEY "measure1.holdtime"
 #define MEASURE2_HOLDTIME_KEY "measure2.holdtime"

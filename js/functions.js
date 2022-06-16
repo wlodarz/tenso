@@ -74,7 +74,8 @@ function moving(on_off) {
 		moving_widget.visible=true
 		start_operation("Moving")
 	} else {
-		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_IDLE
+        	TensoSensor.movedirection = 0
+	        TensoSensor.operation = TensoSensor.SENSOR_OPERATION_IDLE
 		moving_widget.focus=false
 		moving_widget.visible=false
 	}
