@@ -11,7 +11,7 @@ function emergency_stop() {
 	moving(0)
 	reporting(0)
 	config(0)
-	counting(0)
+	//counting(0)
 
 	TensoSensor.operation = TensoSensor.SENSOR_OPERATION_STOP
 	TensoSensor.suboperation = 0
@@ -30,7 +30,7 @@ function measure1() {
 		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_MEASURE1
 		TensoSensor.suboperation = TensoSensor.MEASURE1_SUBOPERATION_TILLMAXFORCE
 		start_operation("Measure1")
-		counting(0)
+		//counting(0)
 	}
 	else {
 		console.log("other state - do nothing")
@@ -45,7 +45,7 @@ function measure2() {
 		TensoSensor.operation = TensoSensor.SENSOR_OPERATION_MEASURE2
 		TensoSensor.suboperation = TensoSensor.MEASURE2_SUBOPERATION_TILLSTARTMEASUREFORCE
 		start_operation("Measure2")
-		counting(0)
+		//counting(0)
 	}
 	else {
 		console.log("other state - do nothing")
@@ -146,13 +146,12 @@ function config(on_off) {
 }
 
 function counting(on_off) {
-	console.log("COUNTING")
 	if (on_off == 1) {
-		counter.focus=true
-		counter.visible=true
+		//counter.focus=true
+		//counter.visible=true
 	} else {
-		counter.focus=false
-		counter.visible=false
+		//counter.focus=false
+		//counter.visible=false
 	}
 }
 

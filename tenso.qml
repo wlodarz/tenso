@@ -48,22 +48,22 @@ Rectangle {
 			id: forceField
 			x: parent.fieldMariginX
 			y: parent.fieldMariginY + parent.fieldHeight * 0
-			field_label: "C.Force"
-			value_text: "" + TensoSensor.currentForce
+			field_label: "Force"
+			value_text: "" + TensoSensor.currentForce.toFixed(1)
 		}
 		TensoField {
 			id: lengthField
 			x: parent.fieldMariginX
 			y: parent.fieldMariginY + parent.fieldHeight * 1
-			field_label: "C.Length"
-			value_text: "" + TensoSensor.currentLength
+			field_label: "Length"
+			value_text: "" + TensoSensor.currentLength.toFixed(2)
 		}
 		TensoField {
 			id: counterField
 			x: parent.fieldMariginX
 			y: parent.fieldMariginY + parent.fieldHeight * 2
 			field_label: "Counter"
-			value_text: "" + TensoSensor.secondsCounter
+			value_text: "" + TensoSensor.secondsHoldCounter
 		}
 
 		TensoButton {
@@ -211,12 +211,23 @@ Rectangle {
 						canvas.lengthDownArray.push(len)
 						break
 				}
+
 				canvas.requestPaint()
 		
 				if (TensoSensor.Suboperation == TensoSensor.MEASURE2_SUBOPERATION_HOLDMAXFORCE)
 					Control.counting(1)
 				else
 					Control.counting(0)
+			}
+			function onMeasureLevelsUpdatedChanged() {
+				var len = TensoSensor.currentLength
+				var force = TensoSensor.currentForce
+
+				console.log("measure levels : length " + len + " force " + force)
+
+				TensoSensor.measureLevelsUpdate = 0
+				canvas.forceLevelsArray.push(force)
+				canvas.lengthLevelsArray.push(len)
 			}
 		}
 	}
@@ -241,6 +252,8 @@ Rectangle {
 		property var lengthHoldArray: []
 		property var forceDownArray: []
 		property var lengthDownArray: []
+		property var forceLevelsArray: []
+		property var lengthLevelsArray: []
 
 		signal clearRequest
 
@@ -253,6 +266,8 @@ Rectangle {
 			lengthHoldArray.length = 0
 			forceDownArray.length = 0
 			lengthDownArray.length = 0
+			forceLevelsArray.length = 0
+			lengthLevelsArray.length = 0
 			arcsPainted = false
 		}
 		onPaint:{
@@ -263,7 +278,11 @@ Rectangle {
 
 			function max_to_single(max)
 			{
-				if (max < 100) {
+				if (max < 1) {
+					return 0.1;
+				} else if (max < 10) {
+					return 1;
+				} else if (max < 100) {
 					return 10;
 				} else if (max < 1000) {
 					return 100;
@@ -281,29 +300,29 @@ Rectangle {
 			var pic_height = height - 2 * mariginY
 
 			var maxX = TensoSensor.maxForce
-            		var maxY = TensoSensor.maxLengthCm
+            		var maxY = TensoSensor.maxLength
 
 			ctx.reset()
 
 			// scale
-			ctx.strokeStyle = "steelblue"
 
+			ctx.strokeStyle = "steelblue"
 			ctx.beginPath()
 			// x
 			ctx.moveTo(x_zero, y_zero)
 			ctx.lineTo(x_zero + pic_width, y_zero)
-			ctx.stroke()
 
 			// y
+			//ctx.beginPath()
 			ctx.moveTo(x_zero, y_zero)
 			ctx.lineTo(x_zero, y_zero - pic_height)
 
 			// x - length
 			var x_offset = 20
 			var y_offset = 10
-            		var single_x = max_to_single(TensoSensor.maxLengthCm)
+            		var single_x = max_to_single(TensoSensor.maxLength)
 			var single_y = max_to_single(TensoSensor.maxForce)
-		        var steps_x = TensoSensor.maxLengthCm / single_x
+		        var steps_x = TensoSensor.maxLength / single_x
 			var steps_y = TensoSensor.maxForce / single_y
 
 			// steps y
@@ -328,7 +347,7 @@ Rectangle {
 
 			// steps x
 			for (var i=0; i<steps_x; i++) {
-                		var start_x = x_zero + val_to_screen(i * single_x, TensoSensor.maxLengthCm, pic_width)
+                		var start_x = x_zero + val_to_screen(i * single_x, TensoSensor.maxLength, pic_width)
 				var start_y = y_zero
 				ctx.moveTo(start_x, start_y)
 				ctx.lineTo(start_x, start_y + y_offset)
@@ -340,28 +359,61 @@ Rectangle {
 			var start_x = x_zero + pic_width
 			ctx.moveTo(start_x, start_y)
 			ctx.lineTo(start_x, start_y + y_offset)
-            		var range_text = "" + TensoSensor.maxLengthCm
+            		var range_text = "" + TensoSensor.maxLength
 			var text_offset = ctx.measureText(range_text).width
 			ctx.fillText(range_text, start_x - text_offset - 1, start_y + 10)
 			text_offset = ctx.measureText("length").width
 			ctx.fillText("length", start_x - text_offset - 1, start_y + 20)
 
-			ctx.closePath()
+			ctx.stroke()
+
+			// now we painting Level lines
+			ctx.strokeStyle = "purple"
+			ctx.beginPath()
+			for (var i=0; i<lengthLevelsArray.length; i++) {
+
+                    		var to_x = x_zero + val_to_screen(lengthLevelsArray[i], TensoSensor.maxLength, pic_width)
+				var to_y = y_zero - val_to_screen(0, TensoSensor.maxForce, pic_height)
+				ctx.moveTo(to_x, to_y)
+				//console.log("x " + to_x + " y " + to_y)
+
+                    		to_x = x_zero + val_to_screen(lengthLevelsArray[i], TensoSensor.maxLength, pic_width)
+				to_y = y_zero - val_to_screen(forceLevelsArray[i], TensoSensor.maxForce, pic_height)
+				ctx.lineTo(to_x, to_y)
+				//console.log("x " + to_x + " y " + to_y)
+
+                    		to_x = x_zero + val_to_screen(0, TensoSensor.maxLength, pic_width)
+				to_y = y_zero - val_to_screen(forceLevelsArray[i], TensoSensor.maxForce, pic_height)
+				ctx.moveTo(to_x, to_y)
+				//console.log("x " + to_x + " y " + to_y)
+
+                    		to_x = x_zero + val_to_screen(lengthLevelsArray[i], TensoSensor.maxLength, pic_width)
+				to_y = y_zero - val_to_screen(forceLevelsArray[i], TensoSensor.maxForce, pic_height)
+				ctx.lineTo(to_x, to_y)
+				//console.log("x " + to_x + " y " + to_y)
+
+				var text = ""+lengthLevelsArray[i].toFixed(2)+"m "+forceLevelsArray[i].toFixed(2)+"kg"
+				//ctx.fillText(text, x_zero+2, to_y-5)
+				//ctx.fillText(text, to_x-20, to_y-5)
+				ctx.fillText(text, x_zero+4, y_zero-pic_height+10+i*20)
+				
+			}
 			ctx.stroke()
 
 			// now we painting Up points
 			ctx.strokeStyle = "blue"
 			ctx.beginPath()
-			ctx.moveTo(x_zero, y_zero)
+			//ctx.moveTo(x_zero, y_zero)
 			if (lengthUpArray > 0) {
-                    			var to_x = x_zero + val_to_screen(lengthUpArray[0], TensoSensor.maxLengthCm, pic_width)
+                    			var to_x = x_zero + val_to_screen(lengthUpArray[0], TensoSensor.maxLength, pic_width)
 					var to_y = y_zero - val_to_screen(forceUpArray[0], TensoSensor.maxForce, pic_height)
 					ctx.moveTo(to_x, to_y)
 			}
 			for (var i=0; i<lengthUpArray.length; i++) {
-                		if (lengthUpArray[i] < TensoSensor.maxLengthCm && forceUpArray[i] < TensoSensor.maxForce) {
-                    			var to_x = x_zero + val_to_screen(lengthUpArray[i], TensoSensor.maxLengthCm, pic_width)
+                		if (lengthUpArray[i] < TensoSensor.maxLength && forceUpArray[i] < TensoSensor.maxForce) {
+                    			var to_x = x_zero + val_to_screen(lengthUpArray[i], TensoSensor.maxLength, pic_width)
 					var to_y = y_zero - val_to_screen(forceUpArray[i], TensoSensor.maxForce, pic_height)
+					//console.log("Hold points start " + to_x + " " + to_y)
 					ctx.lineTo(to_x, to_y)
 				}
 			}
@@ -371,14 +423,14 @@ Rectangle {
 			ctx.beginPath()
 			//ctx.moveTo(x_zero, y_zero)
 			if (lengthHoldArray > 0) {
-                    			var to_x = x_zero + val_to_screen(lengthHoldArray[0], TensoSensor.maxLengthCm, pic_width)
+                    			var to_x = x_zero + val_to_screen(lengthHoldArray[0], TensoSensor.maxLength, pic_width)
 					var to_y = y_zero - val_to_screen(forceHoldArray[0], TensoSensor.maxForce, pic_height)
 					ctx.moveTo(to_x, to_y)
 					console.log("Hold points start " + to_x + " " + to_y)
 			}
 			for (var i=0; i<lengthHoldArray.length; i++) {
-                		if (lengthHoldArray[i] < TensoSensor.maxLengthCm && forceHoldArray[i] < TensoSensor.maxForce) {
-                    			var to_x = x_zero + val_to_screen(lengthHoldArray[i], TensoSensor.maxLengthCm, pic_width)
+                		if (lengthHoldArray[i] < TensoSensor.maxLength && forceHoldArray[i] < TensoSensor.maxForce) {
+                    			var to_x = x_zero + val_to_screen(lengthHoldArray[i], TensoSensor.maxLength, pic_width)
 					var to_y = y_zero - val_to_screen(forceHoldArray[i], TensoSensor.maxForce, pic_height)
 					ctx.lineTo(to_x, to_y)
 				}
@@ -390,18 +442,20 @@ Rectangle {
 			ctx.beginPath()
 			//ctx.moveTo(x_zero, y_zero)
 			if (lengthDownArray > 0) {
-                    			var to_x = x_zero + val_to_screen(lengthDownArray[0], TensoSensor.maxLengthCm, pic_width)
+                    			var to_x = x_zero + val_to_screen(lengthDownArray[0], TensoSensor.maxLength, pic_width)
 					var to_y = y_zero - val_to_screen(forceDownArray[0], TensoSensor.maxForce, pic_height)
 					ctx.moveTo(to_x, to_y)
 			}
 			for (var i=0; i<lengthDownArray.length; i++) {
-                		if (lengthDownArray[i] < TensoSensor.maxLengthCm && forceDownArray[i] < TensoSensor.maxForce) {
-                    			var to_x = x_zero + val_to_screen(lengthDownArray[i], TensoSensor.maxLengthCm, pic_width)
+                		if (lengthDownArray[i] < TensoSensor.maxLength && forceDownArray[i] < TensoSensor.maxForce) {
+                    			var to_x = x_zero + val_to_screen(lengthDownArray[i], TensoSensor.maxLength, pic_width)
 					var to_y = y_zero - val_to_screen(forceDownArray[i], TensoSensor.maxForce, pic_height)
 					ctx.lineTo(to_x, to_y)
 				}
 			}
 			ctx.stroke()
+			ctx.closePath()
+
 		}
 		Component.onCompleted: {
 		}

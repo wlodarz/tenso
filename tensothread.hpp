@@ -17,7 +17,7 @@ class TensoThread : public QThread
 
 public:
   int loadConfig(QString);
-  int loadSteps2CmTable(QString filename);
+  int loadSteps2LengthTable(QString filename);
   int configure();
   int init(TensoSensor *);
 
@@ -35,6 +35,8 @@ private:
 
   void saveReportToFile(QString csvFileName);
   void saveSamplesToFile(QString csvFileName, int numberOfSamples);
+
+  void checkLengthLevels();
 
 public slots:
   void onTimeout();

@@ -52,10 +52,11 @@ static void CCONV dataHandler(PhidgetVoltageRatioInputHandle ch, void *ctx, doub
         //qDebug() << "Data Event (" << index << " " << val;
 
         weight = K * ((voltageRatio * 1000.0 / 5.0) - offset);
+        weight = K * ((voltageRatio * 1000.0 / 5.0) - offset);
     	//qDebug() << "Weight " << weight << "g";
 	//printf("voltageRatio %f weight %f\n", voltageRatio, weight);
 
-	tenso->setForceValue((int)weight);
+	tenso->setForceValue(weight / 1000.0);
 
         return;
 }
@@ -63,12 +64,13 @@ static void CCONV dataHandler(PhidgetVoltageRatioInputHandle ch, void *ctx, doub
 
 Tensometer::Tensometer()
 {
+	m_forceScale = 1.0;
 }
 
 int Tensometer::init()
 {
 	int res;
-	m_forceValue = 0;
+	m_forceValue = 0.0;
 	PhidgetReturnCode result;
 	const char *err;
 

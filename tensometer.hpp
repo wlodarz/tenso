@@ -13,11 +13,13 @@ public:
 	int waitForHardware();
 
 	/* force values in grams */
-	int getForceValue() { return m_forceValue; }
-	void setForceValue(int val) { m_forceValue = val >= 0 ? val : 0; }
+	void setForceScale(float scale) { m_forceScale = scale; }
+	float getForceValue() { return m_forceValue * m_forceScale; }
+	void setForceValue(float val) { m_forceValue = val >= 0 ? val : 0; }
 
 private:
-	int m_forceValue;
+	float m_forceValue;
+	float m_forceScale;
 	PhidgetVoltageRatioInputHandle voltageRatioInput;
 };
 
