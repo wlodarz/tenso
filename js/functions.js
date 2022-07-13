@@ -180,3 +180,23 @@ function discard_report() {
 	reporting_widget.visible=false
 }
 
+function parseNumber(text) {
+    try {
+        // Try locale parse
+        var v = Number.fromLocaleString(Qt.locale(), text)
+        //print("parsed locale")
+    }
+    catch (e) {
+        try {
+            // Parse EN (decimal point)
+            var v = Number.fromLocaleString(Qt.locale("en_EN"), text)
+            //print("parsed EN")
+        }
+        catch (e) {
+            // Last try, parse float. Returns 0 if fail to convert
+            var v = parseFloat(text)
+            //print("parsed float")
+        }
+    }
+    return v
+}

@@ -14,12 +14,20 @@ static void CCONV attachHandler(PhidgetHandle stepper, void *userptr)
         int serialNo;
         const char *name;
 	StepperEngine *engine = (StepperEngine *)userptr;
+    double maxDataRate, minDataRate;
 
         //Phidget_getDeviceName (stepper, &name);
         //Phidget_getSerialNumber(stepper, &serialNo);
         //printf("%s %10d attached!\n", name, serialNo);
 	engine->setConnected(1);
 	//engine->setPosition(engine->getPosition());
+
+    PhidgetStepper_getMaxDataRate(engine->m_stepper, &maxDataRate);
+    PhidgetStepper_getMinDataRate(engine->m_stepper, &minDataRate);
+    PhidgetStepper_setDataRate(engine->m_stepper, 20);
+
+    qDebug() << "stepper minDataRate " << minDataRate;
+    qDebug() << "stepper maxDataRate " << maxDataRate;
 
         return;
 }

@@ -45,7 +45,8 @@ class TensoSensor : public QObject {
 		Q_PROPERTY(int measureUpIndex READ measureUpIndexProperty WRITE setMeasureUpIndexProperty NOTIFY measureUpIndexPropertyChanged)
 		Q_PROPERTY(int measureHoldIndex READ measureHoldIndexProperty WRITE setMeasureHoldIndexProperty NOTIFY measureHoldIndexPropertyChanged)
 		Q_PROPERTY(int measureDownIndex READ measureDownIndexProperty WRITE setMeasureDownIndexProperty NOTIFY measureDownIndexPropertyChanged)
-		Q_PROPERTY(int measureLevelsIndex READ measureLevelsIndexProperty WRITE setMeasureLevelsIndexProperty NOTIFY measureLevelsIndexPropertyChanged)
+        Q_PROPERTY(int measureLevelsUpIndex READ measureLevelsUpIndexProperty WRITE setMeasureLevelsUpIndexProperty NOTIFY measureLevelsUpIndexPropertyChanged)
+        Q_PROPERTY(int measureLevelsDownIndex READ measureLevelsDownIndexProperty WRITE setMeasureLevelsDownIndexProperty NOTIFY measureLevelsDownIndexPropertyChanged)
 
 		Q_PROPERTY(float maxForce READ maxForceProperty WRITE setMaxForceProperty NOTIFY maxForcePropertyChanged)
 		Q_PROPERTY(int maxPosition READ maxPositionProperty WRITE setMaxPositionProperty NOTIFY maxPositionPropertyChanged)
@@ -62,8 +63,9 @@ class TensoSensor : public QObject {
 		Q_PROPERTY(float turns READ turnsProperty WRITE setTurnsProperty NOTIFY turnsPropertyChanged)
 		Q_PROPERTY(float startingLength READ startingLengthProperty WRITE setStartingLengthProperty NOTIFY startingLengthPropertyChanged)
         	Q_PROPERTY(int savereportflag READ saveReportFlagProperty WRITE setSaveReportFlagProperty NOTIFY saveReportFlagPropertyChanged)
+
 		Q_PROPERTY(QString lotId READ lotIdProperty WRITE setLotIdProperty NOTIFY lotIdPropertyChanged)
-		Q_PROPERTY(float lotStartLength READ lotStartLengthProperty WRITE setLotStartLengthProperty NOTIFY lotStartLengthPropertyChanged)
+        Q_PROPERTY(double lotStartLength READ lotStartLengthProperty WRITE setLotStartLengthProperty NOTIFY lotStartLengthPropertyChanged)
 		Q_PROPERTY(QString lotMM READ lotMMProperty WRITE setLotMMProperty NOTIFY lotMMPropertyChanged)
 		Q_PROPERTY(QString lotYYYY READ lotYYYYProperty WRITE setLotYYYYProperty NOTIFY lotYYYYPropertyChanged)
 		Q_PROPERTY(int lotSegment READ lotSegmentProperty WRITE setLotSegmentProperty NOTIFY lotSegmentPropertyChanged)
@@ -93,7 +95,8 @@ class TensoSensor : public QObject {
 		m_measureUpIndex(0),
 		m_measureHoldIndex(0),
 		m_measureDownIndex(0),
-		m_measureLevelsIndex(0),
+        m_measureLevelsUpIndex(0),
+        m_measureLevelsDownIndex(0),
 		m_measurePhase(MEASURE_PHASE_NONE),
 		m_maxMeasuredLength(0.0),
 		m_minMeasuredLength(0.0),
@@ -156,8 +159,10 @@ class TensoSensor : public QObject {
 		void setMeasureHoldIndexProperty(int val) { m_measureHoldIndex = val; emit measureHoldIndexPropertyChanged(val); }
 		int measureDownIndexProperty() const { qDebug() << "measureDownIndex get"; return m_measureDownIndex; }
 		void setMeasureDownIndexProperty(int val) { m_measureDownIndex = val; emit measureDownIndexPropertyChanged(val); }
-		int measureLevelsIndexProperty() const { return m_measureLevelsIndex; }
-		void setMeasureLevelsIndexProperty(int val) { m_measureLevelsIndex = val; emit measureLevelsIndexPropertyChanged(val); }
+        int measureLevelsUpIndexProperty() const { return m_measureLevelsUpIndex; }
+        void setMeasureLevelsUpIndexProperty(int val) { m_measureLevelsUpIndex = val; emit measureLevelsUpIndexPropertyChanged(val); }
+        int measureLevelsDownIndexProperty() const { return m_measureLevelsDownIndex; }
+        void setMeasureLevelsDownIndexProperty(int val) { m_measureLevelsDownIndex = val; emit measureLevelsDownIndexPropertyChanged(val); }
 
 		float calculatedWorkUpProperty() const { qDebug() << "calculatedWorkUp get " << m_calculatedWorkUp; return m_calculatedWorkUp; }
 		void setCalculatedWorkUpProperty(float val) { m_calculatedWorkUp = val; emit calculatedWorkUpPropertyChanged(val); }
@@ -182,7 +187,7 @@ class TensoSensor : public QObject {
 		QString lotIdProperty() const { return m_lotId; }
 		void setLotIdProperty(QString val) { m_lotId = val; emit lotIdPropertyChanged(val); }
 
-		float lotStartLengthProperty() const { return m_lotStartLength; }
+        double lotStartLengthProperty() const { return m_lotStartLength; }
 		void setLotStartLengthProperty(float length) { m_lotStartLength = length; }
 		QString lotMMProperty() const { return m_lotMM; }
 		void setLotMMProperty(QString mm) { m_lotMM = mm; }
@@ -356,7 +361,8 @@ signals:
 		void measureUpIndexPropertyChanged(int newValue);
 		void measureHoldIndexPropertyChanged(int newValue);
 		void measureDownIndexPropertyChanged(int newValue);
-		void measureLevelsIndexPropertyChanged(int newValue);
+        void measureLevelsUpIndexPropertyChanged(int newValue);
+        void measureLevelsDownIndexPropertyChanged(int newValue);
 		void calculatedWorkUpPropertyChanged(float newValue);
 		void calculatedWorkHoldPropertyChanged(float newValue);
 		void calculatedWorkDownPropertyChanged(float newValue);
@@ -369,7 +375,7 @@ signals:
 		void startingLengthPropertyChanged(float newValue);
 		void saveReportFlagPropertyChanged(int newValue);
 		void lotIdPropertyChanged(QString newValue);
-		void lotStartLengthPropertyChanged(float newValue);
+        void lotStartLengthPropertyChanged(double newValue);
 		void lotMMPropertyChanged(QString newValue);
 		void lotYYYYPropertyChanged(QString newValue);
 		void lotSegmentPropertyChanged(int newValue);
@@ -399,22 +405,41 @@ signals:
 
 		void addStep2LengthTableEntry(unsigned int steps, float length) { steps2length_table.insert(std::pair<unsigned int, float>(steps, length)); }
 
-		void setMeasurePoints(QString points_string) {
-			m_measurePointsSize = 0;
+        void setMeasurePointsUp(QString points_string) {
+            m_measurePointsSizeUp = 0;
 			QStringList list = points_string.split(',');
 			for(int i=0; i<list.size(); i++) {
-				measure_points[i] = list.at(i).toFloat();
-				m_measurePointsSize++;
+                measure_points_up[i] = list.at(i).toFloat();
+                m_measurePointsSizeUp++;
 			}
 		}
-		int getMeasurePointsSize() { return m_measurePointsSize; }
-		float getMeasurePoint(int index) { return measure_points[index]; }
-		void addMeasurePoint(float value) { measure_points[m_measurePointsSize] = value; m_measurePointsSize++; }
+        int getMeasurePointsSizeUp() { return m_measurePointsSizeUp; }
+        float getMeasurePointUp(int index) { return measure_points_up[index]; }
+        void addMeasurePointUp(float value) { measure_points_up[m_measurePointsSizeUp] = value; m_measurePointsSizeUp++; }
 
-		void addMeasuredValue(float length, float force) { m_measuredLength.push_back(length); m_measuredForce.push_back(force); }
-		float getMeasuredValueLength(int i) { return m_measuredLength[i]; }
-		float getMeasuredValueForce(int i) { return m_measuredForce[i]; }
-		int getMeasuredValueSize() { return m_measuredLength.size(); }
+        void addMeasuredValueUp(float length, float force, float work) { m_measuredLengthUp.push_back(length); m_measuredForceUp.push_back(force); m_measuredWorkUp.push_back(work); }
+        float getMeasuredValueLengthUp(int i) { return m_measuredLengthUp[i]; }
+        float getMeasuredValueForceUp(int i) { return m_measuredForceUp[i]; }
+        float getMeasuredValueWorkUp(int i) { return m_measuredWorkUp[i]; }
+        int getMeasuredValueSizeUp() { return m_measuredLengthUp.size(); }
+
+        void setMeasurePointsDown(QString points_string) {
+            m_measurePointsSizeDown = 0;
+            QStringList list = points_string.split(',');
+            for(int i=0; i<list.size(); i++) {
+                measure_points_down[i] = list.at(i).toFloat();
+                m_measurePointsSizeDown++;
+            }
+        }
+        int getMeasurePointsSizeDown() { return m_measurePointsSizeDown; }
+        float getMeasurePointDown(int index) { return measure_points_down[index]; }
+        void addMeasurePointDown(float value) { measure_points_down[m_measurePointsSizeDown] = value; m_measurePointsSizeDown++; }
+
+        void addMeasuredValueDown(float length, float force, float work) { m_measuredLengthDown.push_back(length); m_measuredForceDown.push_back(force); m_measuredWorkDown.push_back(work); }
+        float getMeasuredValueLengthDown(int i) { return m_measuredLengthDown[i]; }
+        float getMeasuredValueForceDown(int i) { return m_measuredForceDown[i]; }
+        float getMeasuredValueWorkDown(int i) { return m_measuredWorkDown[i]; }
+        int getMeasuredValueSizeDown() { return m_measuredLengthDown.size(); }
 
 	public:
 		int m_last_move_val;
@@ -440,7 +465,8 @@ signals:
 		int m_measureUpIndex;
 		int m_measureHoldIndex;
 		int m_measureDownIndex;
-		int m_measureLevelsIndex;
+        int m_measureLevelsUpIndex;
+        int m_measureLevelsDownIndex;
 
 		/* flags */
 		int m_zeroingLooseFlag;
@@ -457,19 +483,26 @@ signals:
 		int m_saveReportFlag;
 		QString m_lotId;
 
-		int m_measurePointsSize;
+        int m_measurePointsSizeUp;
+        int m_measurePointsSizeDown;
 
 		std::map<int, float> length_values;
 		std::map<int, float> force_values;
 
 		std::map<unsigned int, float> steps2length_table;
-		std::map<unsigned int, float> measure_points;
-		std::map<unsigned int, float> forceLevels;
+        std::map<unsigned int, float> measure_points_up;
+        std::map<unsigned int, float> forceLevels_up;
+        std::map<unsigned int, float> measure_points_down;
+        std::map<unsigned int, float> forceLevels_down;
 
-		std::vector<float> m_measuredForce;
-		std::vector<float> m_measuredLength;
+        std::vector<float> m_measuredForceUp;
+        std::vector<float> m_measuredLengthUp;
+        std::vector<float> m_measuredWorkUp;
+        std::vector<float> m_measuredForceDown;
+        std::vector<float> m_measuredLengthDown;
+        std::vector<float> m_measuredWorkDown;
 
-		float m_lotStartLength;
+        double m_lotStartLength;
 		QString m_lotMM;
 		QString m_lotYYYY;
 		int m_lotSegment;

@@ -8,12 +8,20 @@ static void CCONV attachHandler(PhidgetHandle phid, void *userptr)
 {
 	PhidgetReturnCode result;
 	const char *err;
+    double minDataRate, maxDataRate;
 
 	userptr = userptr;
 
         PhidgetVoltageRatioInputHandle voltageRatioInput = (PhidgetVoltageRatioInputHandle)phid;
 
         printf("Tensometer attached!\n");
+        PhidgetVoltageRatioInput_getMinDataRate(voltageRatioInput, &minDataRate);
+        PhidgetVoltageRatioInput_getMaxDataRate(voltageRatioInput, &maxDataRate);
+        PhidgetVoltageRatioInput_setDataRate(voltageRatioInput, 20);
+
+        qDebug() << "tenso minDataRate " << minDataRate;
+        qDebug() << "tenso maxDataRate " << maxDataRate;
+
         return;
 }
 
@@ -84,7 +92,6 @@ int Tensometer::init()
 
         PhidgetVoltageRatioInput_setBridgeEnabled(voltageRatioInput, PTRUE);
         PhidgetVoltageRatioInput_setBridgeGain(voltageRatioInput, BRIDGE_GAIN_128);
-        PhidgetVoltageRatioInput_setDataRate(voltageRatioInput, 10);
 	PhidgetVoltageRatioInput_setVoltageRatioChangeTrigger(voltageRatioInput, 0.0);
 
 	if((result = Phidget_open((PhidgetHandle)voltageRatioInput))!=0) {

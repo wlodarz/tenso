@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick 2.15
 import QtQuick.Controls 1.4
 import TensoSensor 1.0
+import "js/functions.js" as Control
 
 Rectangle {
 	width: 800
@@ -44,7 +45,7 @@ Rectangle {
 		font.pointSize: 16
 		anchors.left: parent.left
 		anchors.margins: 20
-        	text: "Batch"
+            text: "Segment"
         }
         Text {
 		y: 270
@@ -64,8 +65,8 @@ Rectangle {
 		validator: DoubleValidator {
 			bottom: 0.1
 			top: 400.0
-			decimals: 2
-			notation: DoubleValidator.StandardNotation
+            decimals: 3
+            //notation: DoubleValidator.StandardNotation
 		}
         }
         TextInput {
@@ -126,7 +127,7 @@ Rectangle {
 		isDefault: true
 		onClicked: {
 			console.log("ACCEPTED");
-			TensoSensor.lotStartLength = parseFloat(startlength.text)
+            TensoSensor.lotStartLength = Control.parseNumber(startlength.text)
 			TensoSensor.lotMM = mm.text
 			TensoSensor.lotYYYY = yyyy.text
 			TensoSensor.lotSegment = parseInt(segment.text)

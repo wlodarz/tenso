@@ -37,10 +37,9 @@
 #define MEASURE1_HOLDTIME_KEY 		"measure1.holdtime"
 #define MEASURE2_HOLDTIME_KEY 		"measure2.holdtime"
 #define MEASURE2_HOLDFORCE_KEY 		"measure2.holdforce"
-#define MEASURE2_MINFORCE_KEY 		"measure2.minforce"
+#define MEASURE2_MINLENGTH_KEY 		"measure2.minlength"
 #define CONFIG_ROTATION_CONST1_KEY 	"config.rotation.const1"
 #define CONFIG_ROTATION_CONST2_KEY 	"config.rotation.const2"
-#define GOSTART_OFFSET_KEY 		"gostart.offset"
 
 
 class TensoConfig //: public QThread

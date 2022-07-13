@@ -49,14 +49,14 @@ Rectangle {
 			x: parent.fieldMariginX
 			y: parent.fieldMariginY + parent.fieldHeight * 0
 			field_label: "Force"
-			value_text: "" + TensoSensor.currentForce.toFixed(1)
+            value_text: "" + TensoSensor.currentForce.toFixed(2)
 		}
 		TensoField {
 			id: lengthField
 			x: parent.fieldMariginX
 			y: parent.fieldMariginY + parent.fieldHeight * 1
 			field_label: "Length"
-			value_text: "" + TensoSensor.currentLength.toFixed(2)
+            value_text: "" + TensoSensor.currentLength.toFixed(3)
 		}
 		TensoField {
 			id: counterField
@@ -76,7 +76,8 @@ Rectangle {
         		property bool activated: false
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: Control.config(1)
+                        //onClicked: Control.config(1)
+                        onClicked: Control.lot_config(1)
         		}
 		}
 
@@ -129,7 +130,7 @@ Rectangle {
 			x: parent.fieldMariginX
 			y: parent.height - parent.fieldMariginY - parent.buttonHeight * 5
 			property string action_text: "measure1"
-        		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_MEASURE2
+                property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_MEASURE1
 			MouseArea {
                 		anchors.fill: parent
                 		onClicked: Control.lot_config(1)
@@ -392,9 +393,12 @@ Rectangle {
 				ctx.lineTo(to_x, to_y)
 				//console.log("x " + to_x + " y " + to_y)
 
-				var text = ""+lengthLevelsArray[i].toFixed(2)+"m "+forceLevelsArray[i].toFixed(2)+"kg"
 				//ctx.fillText(text, x_zero+2, to_y-5)
 				//ctx.fillText(text, to_x-20, to_y-5)
+                //var text = ""+lengthLevelsArray[i].toFixed(2)+"m "+forceLevelsArray[i].toFixed(2)+"kg"
+                //console.log("forceLevelsArray" + forceLevelsArray[i])
+                var text = ""+lengthLevelsArray[i].toFixed(3)+"m " +forceLevelsArray[i].toFixed(3)+"kg"
+
 				ctx.fillText(text, x_zero+4, y_zero-pic_height+10+i*20)
 				
 			}

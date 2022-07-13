@@ -12,3 +12,6 @@ qml.path = /opt/tenso
 INSTALLS += target qml
 
 CONFIG += force_debug_info
+
+DISTFILES += \
+    LotConfig.qml

@@ -36,7 +36,8 @@ private:
   void saveReportToFile(QString csvFileName);
   void saveSamplesToFile(QString csvFileName, int numberOfSamples);
 
-  void checkLengthLevels();
+  void checkLengthUpLevels();
+  void checkLengthDownLevels();
 
 public slots:
   void onTimeout();
