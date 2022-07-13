@@ -63,6 +63,11 @@ class TensoSensor : public QObject {
 		Q_PROPERTY(float startingLength READ startingLengthProperty WRITE setStartingLengthProperty NOTIFY startingLengthPropertyChanged)
         	Q_PROPERTY(int savereportflag READ saveReportFlagProperty WRITE setSaveReportFlagProperty NOTIFY saveReportFlagPropertyChanged)
 		Q_PROPERTY(QString lotId READ lotIdProperty WRITE setLotIdProperty NOTIFY lotIdPropertyChanged)
+		Q_PROPERTY(float lotStartLength READ lotStartLengthProperty WRITE setLotStartLengthProperty NOTIFY lotStartLengthPropertyChanged)
+		Q_PROPERTY(QString lotMM READ lotMMProperty WRITE setLotMMProperty NOTIFY lotMMPropertyChanged)
+		Q_PROPERTY(QString lotYYYY READ lotYYYYProperty WRITE setLotYYYYProperty NOTIFY lotYYYYPropertyChanged)
+		Q_PROPERTY(int lotSegment READ lotSegmentProperty WRITE setLotSegmentProperty NOTIFY lotSegmentPropertyChanged)
+		Q_PROPERTY(int lotNumber READ lotNumberProperty WRITE setLotNumberProperty NOTIFY lotNumberPropertyChanged)
 
 	public:
 		TensoSensor(QObject *parent = 0) : QObject(parent),
@@ -97,7 +102,12 @@ class TensoSensor : public QObject {
 		m_turns(0),
 		m_startingLength(36.0),
 		m_saveReportFlag(0),
-		m_lotId("testLot")
+		m_lotId("testLot"),
+		m_lotStartLength(0.3),
+		m_lotMM("01"),
+		m_lotYYYY("0101"),
+		m_lotSegment(1),
+		m_lotNumber(1)
 	{}
 		~TensoSensor() {}
 
@@ -171,6 +181,17 @@ class TensoSensor : public QObject {
 
 		QString lotIdProperty() const { return m_lotId; }
 		void setLotIdProperty(QString val) { m_lotId = val; emit lotIdPropertyChanged(val); }
+
+		float lotStartLengthProperty() const { return m_lotStartLength; }
+		void setLotStartLengthProperty(float length) { m_lotStartLength = length; }
+		QString lotMMProperty() const { return m_lotMM; }
+		void setLotMMProperty(QString mm) { m_lotMM = mm; }
+		QString lotYYYYProperty() const { return m_lotYYYY; }
+		void setLotYYYYProperty(QString yyyy) { m_lotYYYY = yyyy; }
+		int lotSegmentProperty() const { return m_lotSegment; }
+		void setLotSegmentProperty(int segment) { m_lotSegment = segment; }
+		int lotNumberProperty() const { return m_lotNumber; }
+		void setLotNumberProperty(int number) { m_lotNumber = number; }
 
 		int timerTypeProperty() const { return m_timerType; }
 		void setTimerType(int type) { m_timerType = type; }
@@ -348,6 +369,11 @@ signals:
 		void startingLengthPropertyChanged(float newValue);
 		void saveReportFlagPropertyChanged(int newValue);
 		void lotIdPropertyChanged(QString newValue);
+		void lotStartLengthPropertyChanged(float newValue);
+		void lotMMPropertyChanged(QString newValue);
+		void lotYYYYPropertyChanged(QString newValue);
+		void lotSegmentPropertyChanged(int newValue);
+		void lotNumberPropertyChanged(int newValue);
 
 	public slots:
 		void onTimeout() {
@@ -442,6 +468,12 @@ signals:
 
 		std::vector<float> m_measuredForce;
 		std::vector<float> m_measuredLength;
+
+		float m_lotStartLength;
+		QString m_lotMM;
+		QString m_lotYYYY;
+		int m_lotSegment;
+		int m_lotNumber;
 };
 
 #endif // __TENSOSENSOR_H__

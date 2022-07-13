@@ -11,6 +11,7 @@ function emergency_stop() {
 	moving(0)
 	reporting(0)
 	config(0)
+	lot_config(0)
 	//counting(0)
 
 	TensoSensor.operation = TensoSensor.SENSOR_OPERATION_STOP
@@ -142,6 +143,17 @@ function config(on_off) {
 	} else {
 		config_widget.focus=false
 		config_widget.visible=false
+	}
+}
+
+function lot_config(on_off) {
+	console.log("LOT_CONFIG")
+	if (on_off == 1) {
+		lot_config_widget.focus=true
+		lot_config_widget.visible=true
+	} else {
+		lot_config_widget.focus=false
+		lot_config_widget.visible=false
 	}
 }
 

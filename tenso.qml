@@ -129,10 +129,10 @@ Rectangle {
 			x: parent.fieldMariginX
 			y: parent.height - parent.fieldMariginY - parent.buttonHeight * 5
 			property string action_text: "measure1"
-        		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_MEASURE1
+        		property bool activated: TensoSensor.operation == TensoSensor.SENSOR_OPERATION_MEASURE2
 			MouseArea {
                 		anchors.fill: parent
-                		onClicked: Control.measure1()
+                		onClicked: Control.lot_config(1)
         		}
 		}
 
@@ -478,6 +478,13 @@ Rectangle {
 	}
 	Config {
 		id: config_widget
+		visible: false
+		focus: true
+		x: (parent.width - width) / 3
+		y: (parent.height - height) / 3
+	}
+	LotConfig {
+		id: lot_config_widget
 		visible: false
 		focus: true
 		x: (parent.width - width) / 3
